@@ -1,8 +1,6 @@
 import server.Server;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class ClientGUI {
     private JTextField textField1;
@@ -12,12 +10,7 @@ public class ClientGUI {
     private final Server server = new Server();
 
     public ClientGUI() {
-        button1.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                server.uppercaseMessage(textField1.getText());
-            }
-        });
+        button1.addActionListener(e -> server.uppercaseMessage(textField1.getText()));
     }
 
     public static void main(String[] args) {
@@ -25,5 +18,10 @@ public class ClientGUI {
         frame.setContentPane(new ClientGUI().Jpanel);
         frame.setMinimumSize(new Dimension(500, 500));
         frame.setVisible(true);
+
+        JFrame frame2 = new JFrame("App2");
+        frame2.setContentPane(new ClientGUI().Jpanel);
+        frame2.setMinimumSize(new Dimension(500, 500));
+        frame2.setVisible(true);
     }
 }
