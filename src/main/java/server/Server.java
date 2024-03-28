@@ -4,14 +4,15 @@ import java.io.*;
 import java.net.*;
 
 public class Server extends Thread{
-    private static final Socket client;
+    private final Socket client;
     public static void main(String[] args) throws IOException  {
         InetAddress ip = InetAddress.getByName("127.0.0.1");
-        try(ServerSocket server = new ServerSocket(10007, 0, ip);){
+        try(ServerSocket server = new ServerSocket(10007, 0, ip)){
+            System.out.println("Connection Socket Created");
             while(true){
                 try {
                     System.out.println("Waiting for Connection");
-                    server.accept();
+                    new Server(server.accept());
                 } catch (IOException e) {
                     System.err.println("Accept failed.");
                     System.exit(1);
@@ -19,8 +20,13 @@ public class Server extends Thread{
             }
         }
         catch (IOException e){
-            System.err.println(e);
+            System.err.println(e.getMessage());
+            System.exit(1);
         }
+    }
+    private Server(Socket clientSock){
+        client = clientSock;
+        start();
     }
     @Override
     public void run(){
@@ -29,7 +35,7 @@ public class Server extends Thread{
         try(
                 client;
                 PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+                BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()))
         ){
             String inputLine;
             while((inputLine = in.readLine())!= null){
@@ -41,7 +47,7 @@ public class Server extends Thread{
             client.close();
         }
         catch (IOException e){
-
+            System.out.println(e.getMessage());
         }
     }
 }
