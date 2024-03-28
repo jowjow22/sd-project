@@ -5,9 +5,22 @@ import java.net.*;
 
 public class Server extends Thread{
     private final Socket client;
-    public static void main(String[] args) throws IOException  {
-        InetAddress ip = InetAddress.getByName("127.0.0.1");
-        try(ServerSocket server = new ServerSocket(10007, 0, ip)){
+    public static void main(String[] args)   {
+        try {
+            Server.startConnection();
+        } catch (IOException e) {
+            System.exit(1);
+        }
+    }
+    private Server(Socket clientSock){
+        client = clientSock;
+        start();
+    }
+    private static void startConnection() throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.println("Which port should be used?");
+        int serverPort = Integer.parseInt(br.readLine());
+        try(ServerSocket server = new ServerSocket(serverPort, 0)){
             System.out.println("Connection Socket Created");
             while(true){
                 try {
@@ -20,13 +33,9 @@ public class Server extends Thread{
             }
         }
         catch (IOException e){
-            System.err.println(e.getMessage());
+            System.err.println("Could not listen on port: "+serverPort);
             System.exit(1);
         }
-    }
-    private Server(Socket clientSock){
-        client = clientSock;
-        start();
     }
     @Override
     public void run(){
@@ -40,7 +49,7 @@ public class Server extends Thread{
             String inputLine;
             while((inputLine = in.readLine())!= null){
                 System.out.println("Message from" + client.getInetAddress() + ": "+ inputLine);
-
+                out.println(inputLine.toUpperCase());
             }
             out.close();
             in.close();
