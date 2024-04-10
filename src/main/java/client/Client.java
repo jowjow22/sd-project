@@ -5,14 +5,13 @@ import java.net.*;
 
 public class Client {
     public static void main(String[] args) throws IOException {
-        System.out.println("Which ip adress should be used?");
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String serverHost = br.readLine();
-        System.out.println("Which port should be used?");
-        int serverPort = Integer.parseInt(br.readLine());
+        StartConnection startConnection = new StartConnection();
 
-        System.out.println ("Attemping to connect to host " +
-                serverHost + " on port "+serverPort+".");
+        String serverHost = startConnection.getServerIp();
+        int serverPort = startConnection.getServerPort();
+
+        System.out.println("serverHost: " + serverHost);
+        System.out.println("serverPort: " + serverPort);
 
         Socket echoSocket = null;
         PrintWriter out = null;
