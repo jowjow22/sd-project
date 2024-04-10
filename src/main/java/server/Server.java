@@ -1,10 +1,16 @@
 package server;
-
 import java.io.*;
 import java.net.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.FieldNamingPolicy;
+import models.MessageModel;
 
 public class Server extends Thread{
     private final Socket client;
+    private Gson gson = new GsonBuilder()
+            .setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)
+            .create();
     public static void main(String[] args)   {
         try {
             Server.startConnection();
@@ -48,8 +54,12 @@ public class Server extends Thread{
         ){
             String inputLine;
             while((inputLine = in.readLine())!= null){
-                System.out.println("Message from" + client.getInetAddress() + ": "+ inputLine);
-                out.println(inputLine.toUpperCase());
+                String json = inputLine;
+                MessageModel receivedMessage = gson.fromJson(json, MessageModel.class);
+                System.out.println("Message from" + client.getInetAddress() + ": "+ receivedMessage.getMessage());
+                MessageModel sendedMessage = new MessageModel(receivedMessage.getMessage().toUpperCase());
+                String responseMessageJson = gson.toJson(sendedMessage);
+                out.println(responseMessageJson);
             }
             out.close();
             in.close();

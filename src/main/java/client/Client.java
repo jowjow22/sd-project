@@ -1,7 +1,10 @@
 package client;
-
 import java.io.*;
 import java.net.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.FieldNamingPolicy;
+import models.MessageModel;
 
 public class Client {
     public static void main(String[] args) throws IOException {
@@ -26,19 +29,23 @@ public class Client {
             System.err.println("Don't know about host: " + serverHost);
             System.exit(1);
         } catch (IOException e) {
-            System.err.println("Couldn't get I/O for "
-                    + "the connection to: " + serverHost);
             System.exit(1);
         }
 
         BufferedReader stdIn = new BufferedReader(
                 new InputStreamReader(System.in));
         String userInput;
+        Gson gson = new GsonBuilder()
+                .setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)
+                .create();
 
         System.out.print ("input: ");
         while ((userInput = stdIn.readLine()) != null) {
-            out.println(userInput);
-            System.out.println("Server: " + in.readLine());
+            MessageModel sendedMessage = new MessageModel(userInput);
+            String json = gson.toJson(sendedMessage);
+            out.println(json);
+            MessageModel receivedMessage = gson.fromJson(in.readLine(), MessageModel.class);
+            System.out.println("Server: " + receivedMessage.getMessage());
             System.out.print ("input: ");
         }
 
