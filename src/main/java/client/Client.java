@@ -1,14 +1,20 @@
 package client;
 import java.io.*;
 import java.net.*;
+
+import client.views.LoginUser;
+import client.views.StartConnection;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.FieldNamingPolicy;
-import models.MessageModel;
+import models.Request;
 
 public class Client {
     public static void main(String[] args) throws IOException {
         StartConnection startConnection = new StartConnection();
+        LoginUser loginUser = new LoginUser();
+
+        loginUser.setVisible(true);
+
 
         String serverHost = startConnection.getServerIp();
         int serverPort = startConnection.getServerPort();
@@ -40,10 +46,10 @@ public class Client {
 
         System.out.print ("input: ");
         while ((userInput = stdIn.readLine()) != null) {
-            MessageModel sendedMessage = new MessageModel(userInput);
-            String json = gson.toJson(sendedMessage);
+            Request sentMessage = new Request(userInput);
+            String json = gson.toJson(sentMessage);
             out.println(json);
-            MessageModel receivedMessage = gson.fromJson(in.readLine(), MessageModel.class);
+            Request receivedMessage = gson.fromJson(in.readLine(), Request.class);
             System.out.println("Server: " + receivedMessage.getMessage());
             System.out.print ("input: ");
         }

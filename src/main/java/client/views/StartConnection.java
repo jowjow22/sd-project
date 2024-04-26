@@ -1,10 +1,9 @@
-package client;
+package client.views;
 
 import lombok.Getter;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 
 public class StartConnection extends JDialog {
 

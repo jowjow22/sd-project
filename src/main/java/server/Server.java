@@ -3,12 +3,11 @@ import java.io.*;
 import java.net.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.FieldNamingPolicy;
-import models.MessageModel;
+import models.Request;
 
 public class Server extends Thread{
     private final Socket client;
-    private Gson gson = new GsonBuilder()
+    private final Gson gson = new GsonBuilder()
             .create();
     public static void main(String[] args)   {
         try {
@@ -53,12 +52,11 @@ public class Server extends Thread{
         ){
             String inputLine;
             while((inputLine = in.readLine())!= null){
-                String json = inputLine;
-                System.out.println(json);
-                MessageModel receivedMessage = gson.fromJson(json, MessageModel.class);
+                System.out.println(inputLine);
+                Request receivedMessage = gson.fromJson(inputLine, Request.class);
                 System.out.println(receivedMessage.getMessage());
                 System.out.println("Message from" + client.getInetAddress() + ": "+ receivedMessage.getMessage());
-                MessageModel sendedMessage = new MessageModel(receivedMessage.getMessage().toUpperCase());
+                Request sendedMessage = new Request(receivedMessage.getMessage().toUpperCase());
                 String responseMessageJson = gson.toJson(sendedMessage);
                 out.println(responseMessageJson);
             }
