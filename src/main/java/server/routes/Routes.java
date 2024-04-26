@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.internal.LinkedTreeMap;
 import enums.Operations;
+import enums.Statuses;
 import records.CandidateLoginRequest;
 import records.CandidateLoginResponse;
 import records.Request;
@@ -33,7 +34,7 @@ public class Routes {
                 System.out.println("Email: " + candidateLogin.email());
                 System.out.println("Password: " + candidateLogin.password());
 
-                Response<CandidateLoginResponse> response = new Response<CandidateLoginResponse>(Operations.LOGIN_CANDIDATE, new CandidateLoginResponse("token"));
+                Response<CandidateLoginResponse> response = new Response<CandidateLoginResponse>(Operations.LOGIN_CANDIDATE, Statuses.SUCCESS,new CandidateLoginResponse("token"));
                 responseMessage(response);
             }
         }
