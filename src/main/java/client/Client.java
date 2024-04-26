@@ -6,14 +6,15 @@ import client.views.LoginUser;
 import client.views.StartConnection;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import models.Request;
+import com.google.gson.internal.LinkedTreeMap;
+import records.CandidateLoginResponse;
+import records.Request;
+import records.Response;
 
 public class Client {
     public static void main(String[] args) throws IOException {
         StartConnection startConnection = new StartConnection();
         LoginUser loginUser = new LoginUser();
-
-        loginUser.setVisible(true);
 
 
         String serverHost = startConnection.getServerIp();
@@ -38,25 +39,29 @@ public class Client {
             System.exit(1);
         }
 
-        BufferedReader stdIn = new BufferedReader(
-                new InputStreamReader(System.in));
-        String userInput;
         Gson gson = new GsonBuilder()
                 .create();
+        loginUser.setVisible(true);
 
-        System.out.print ("input: ");
-        while ((userInput = stdIn.readLine()) != null) {
-            Request sentMessage = new Request(userInput);
-            String json = gson.toJson(sentMessage);
-            out.println(json);
-            Request receivedMessage = gson.fromJson(in.readLine(), Request.class);
-            System.out.println("Server: " + receivedMessage.getMessage());
-            System.out.print ("input: ");
-        }
 
-        out.close();
-        in.close();
-        stdIn.close();
-        echoSocket.close();
+        PrintWriter finalOut = out;
+        BufferedReader finalIn = in;
+        loginUser.Callback(request -> {
+            String json = gson.toJson(request);
+            System.out.println(json);
+            finalOut.println(json);
+            Response receivedMessage = null;
+            try {
+                receivedMessage = gson.fromJson(finalIn.readLine(), Response.class);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            LinkedTreeMap data = (LinkedTreeMap) receivedMessage.getData();
+            String toJson = gson.toJson(data);
+            CandidateLoginResponse candidateLogin = gson.fromJson(toJson, CandidateLoginResponse.class);
+            System.out.println("Token: " + candidateLogin.token());
+            return null;
+        });
+
     }
 }

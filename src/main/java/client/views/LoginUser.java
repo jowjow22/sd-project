@@ -1,10 +1,13 @@
 package client.views;
 
+import enums.Operations;
 import lombok.Getter;
+import records.CandidateLoginRequest;
+import records.Request;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.util.function.Function;
 
 public class LoginUser extends JDialog {
     private JPanel contentPane;
@@ -13,10 +16,11 @@ public class LoginUser extends JDialog {
 
     private JTextField email;
     private JPasswordField password;
-    @Getter
     private String userEmail;
-    @Getter
     private String userPassword;
+
+    @Getter
+    private Request<CandidateLoginRequest> request;
 
     public LoginUser() {
         setContentPane(contentPane);
@@ -33,8 +37,16 @@ public class LoginUser extends JDialog {
             userEmail = email.getText();
             userPassword = new String(password.getPassword());
 
+            CandidateLoginRequest candidateLogin = new CandidateLoginRequest(userEmail, userPassword);
+
+            this.request = new Request<CandidateLoginRequest>(Operations.LOGIN_CANDIDATE,candidateLogin);
+
             dispose();
         });
+    }
+
+    public void Callback(Function callback){
+        callback.apply(this.request);
     }
 
     public static void main(String[] args) {

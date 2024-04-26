@@ -3,7 +3,10 @@ import java.io.*;
 import java.net.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import models.Request;
+import records.CandidateLoginResponse;
+import records.Request;
+import records.Response;
+import server.routes.Routes;
 
 public class Server extends Thread{
     private final Socket client;
@@ -53,12 +56,8 @@ public class Server extends Thread{
             String inputLine;
             while((inputLine = in.readLine())!= null){
                 System.out.println(inputLine);
-                Request receivedMessage = gson.fromJson(inputLine, Request.class);
-                System.out.println(receivedMessage.getMessage());
-                System.out.println("Message from" + client.getInetAddress() + ": "+ receivedMessage.getMessage());
-                Request sendedMessage = new Request(receivedMessage.getMessage().toUpperCase());
-                String responseMessageJson = gson.toJson(sendedMessage);
-                out.println(responseMessageJson);
+                Routes routes = new Routes(out);
+                routes.receiveRequest(inputLine);
             }
             out.close();
             in.close();
