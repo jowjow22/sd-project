@@ -36,7 +36,6 @@ public class Client {
                 new InputStreamReader(System.in));
         String userInput;
         Gson gson = new GsonBuilder()
-                .setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)
                 .create();
 
         System.out.print ("input: ");

@@ -9,7 +9,6 @@ import models.MessageModel;
 public class Server extends Thread{
     private final Socket client;
     private Gson gson = new GsonBuilder()
-            .setFieldNamingPolicy(FieldNamingPolicy.UPPER_CAMEL_CASE)
             .create();
     public static void main(String[] args)   {
         try {
@@ -55,7 +54,9 @@ public class Server extends Thread{
             String inputLine;
             while((inputLine = in.readLine())!= null){
                 String json = inputLine;
+                System.out.println(json);
                 MessageModel receivedMessage = gson.fromJson(json, MessageModel.class);
+                System.out.println(receivedMessage.getMessage());
                 System.out.println("Message from" + client.getInetAddress() + ": "+ receivedMessage.getMessage());
                 MessageModel sendedMessage = new MessageModel(receivedMessage.getMessage().toUpperCase());
                 String responseMessageJson = gson.toJson(sendedMessage);
