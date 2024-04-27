@@ -19,22 +19,25 @@ public class Routes {
     public Routes(PrintWriter out){
         this.out = out;
     }
-    public void responseMessage(Response toSendResponse){
+    public void responseMessage(Response<?> toSendResponse){
         String responseMessageJson = gson.toJson(toSendResponse);
         out.println(responseMessageJson);
     }
     public void receiveRequest(String receivedRequest){
-        Request receivedMessage = gson.fromJson(receivedRequest, Request.class);
+        Request<CandidateLoginRequest> receivedMessage = gson.fromJson(receivedRequest, Request.class);
 
-        switch (receivedMessage.getOperation()){
+        switch (receivedMessage.operation()){
             case LOGIN_CANDIDATE -> {
-                LinkedTreeMap data = (LinkedTreeMap) receivedMessage.getData();
-                String toJson = gson.toJson(data);
-                CandidateLoginRequest candidateLogin = gson.fromJson(toJson, CandidateLoginRequest.class);
+                CandidateLoginRequest candidateLogin = receivedMessage.data(CandidateLoginRequest.class);
                 System.out.println("Email: " + candidateLogin.email());
                 System.out.println("Password: " + candidateLogin.password());
 
                 Response<CandidateLoginResponse> response = new Response<CandidateLoginResponse>(Operations.LOGIN_CANDIDATE, Statuses.SUCCESS,new CandidateLoginResponse("token"));
+                responseMessage(response);
+            }
+            case SIGNUP_CANDIDATE -> {
+                System.out.println("Signup candidate");
+                Response<CandidateLoginResponse> response = new Response<CandidateLoginResponse>(Operations.SIGNUP_CANDIDATE, Statuses.SUCCESS,new CandidateLoginResponse("token"));
                 responseMessage(response);
             }
         }

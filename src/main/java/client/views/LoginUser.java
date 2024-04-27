@@ -1,13 +1,17 @@
 package client.views;
 
 import enums.Operations;
+import helpers.singletons.IOConnection;
+import helpers.singletons.Json;
 import lombok.Getter;
 import records.CandidateLoginRequest;
+import records.CandidateLoginResponse;
 import records.Request;
+import records.Response;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.function.Function;
+import java.io.IOException;
 
 public class LoginUser extends JDialog {
     private JPanel contentPane;
@@ -31,6 +35,8 @@ public class LoginUser extends JDialog {
 
         buttonCancel.addActionListener(e -> {
             dispose();
+            SignUpCandidate signUpCandidate = new SignUpCandidate();
+            signUpCandidate.setVisible(true);
         });
 
         buttonOK.addActionListener(e -> {
@@ -41,13 +47,26 @@ public class LoginUser extends JDialog {
 
             this.request = new Request<CandidateLoginRequest>(Operations.LOGIN_CANDIDATE,candidateLogin);
 
+            IOConnection io = IOConnection.getInstance();
+            Json jsonParser = Json.getInstance();
+
+            String json = jsonParser.toJson(request);
+            System.out.println(json);
+            io.send(json);
+            Response<CandidateLoginResponse> receivedMessage = null;
+            try {
+                receivedMessage = jsonParser.fromJson(io.receive(), Response.class);
+            } catch (IOException err) {
+                throw new RuntimeException(err);
+            }
+
+            CandidateLoginResponse candidateLoginResponse = receivedMessage.data(CandidateLoginResponse.class);
+            System.out.println("Token: " + candidateLoginResponse.token());
+
             dispose();
         });
     }
 
-    public void Callback(Function callback){
-        callback.apply(this.request);
-    }
 
     public static void main(String[] args) {
         LoginUser dialog = new LoginUser();

@@ -10,8 +10,6 @@ import server.routes.Routes;
 
 public class Server extends Thread{
     private final Socket client;
-    private final Gson gson = new GsonBuilder()
-            .create();
     public static void main(String[] args)   {
         try {
             Server.startConnection();
