@@ -61,15 +61,17 @@ public class SignUpCandidate extends JDialog {
                 io.send(json);
                 Response<CandidateLoginResponse> receivedMessage = null;
                 try {
-                    receivedMessage = jsonParser.fromJson(io.receive(), Response.class);
+                    String response = io.receive();
+                    receivedMessage = jsonParser.fromJson(response, Response.class);
+                    System.out.println("response "+ response);
                 } catch (IOException err) {
                     throw new RuntimeException(err);
                 }
 
                 CandidateLoginResponse candidateLoginResponse = receivedMessage.data(CandidateLoginResponse.class);
-                System.out.println("Token: " + candidateLoginResponse.token());
 
-                dispose();
+                LoginUser login = new LoginUser();
+                login.setVisible(true);
             }
         });
 

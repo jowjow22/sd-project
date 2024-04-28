@@ -28,6 +28,5 @@ public class Client {
         SignOptions signOptions = new SignOptions();
         signOptions.setVisible(true);
 
-
     }
 }

@@ -3,6 +3,10 @@ import java.io.*;
 import java.net.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
+import models.Candidate;
 import records.CandidateLoginResponse;
 import records.Request;
 import records.Response;
@@ -10,6 +14,7 @@ import server.routes.Routes;
 
 public class Server extends Thread{
     private final Socket client;
+    
     public static void main(String[] args)   {
         try {
             Server.startConnection();

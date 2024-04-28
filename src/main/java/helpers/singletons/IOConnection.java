@@ -56,4 +56,11 @@ public class IOConnection {
         this.in = in;
     }
 
+    public void close() throws IOException {
+        System.out.println("Closing connection");
+        in.close();
+        out.close();
+        socket.close();
+    }
+
 }

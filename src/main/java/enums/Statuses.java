@@ -2,6 +2,6 @@ package enums;
 
 public enum Statuses {
     SUCCESS,
-    FAILURE,
-    ERROR
+    ERROR,
+    USER_NOT_FOUND,
 }

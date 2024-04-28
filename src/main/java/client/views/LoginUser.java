@@ -1,9 +1,11 @@
 package client.views;
 
+import client.store.CandidateStore;
 import enums.Operations;
 import helpers.singletons.IOConnection;
 import helpers.singletons.Json;
 import lombok.Getter;
+import models.Candidate;
 import records.CandidateLoginRequest;
 import records.CandidateLoginResponse;
 import records.Request;
@@ -55,15 +57,39 @@ public class LoginUser extends JDialog {
             io.send(json);
             Response<CandidateLoginResponse> receivedMessage = null;
             try {
-                receivedMessage = jsonParser.fromJson(io.receive(), Response.class);
+                String response = io.receive();
+                System.out.println(response);
+                receivedMessage = jsonParser.fromJson(response, Response.class);
             } catch (IOException err) {
                 throw new RuntimeException(err);
             }
 
             CandidateLoginResponse candidateLoginResponse = receivedMessage.data(CandidateLoginResponse.class);
-            System.out.println("Token: " + candidateLoginResponse.token());
+            System.out.println("Token: " + receivedMessage.token());
+            this.request = new Request<CandidateLoginRequest>(Operations.LOOKUP_ACCOUNT_CANDIDATE, receivedMessage.token());
+            json = jsonParser.toJson(request);
 
-            dispose();
+            System.out.println(json);
+            io.send(json);
+
+            try {
+
+                dispose();
+                String responseRaw = io.receive();
+                System.out.println(responseRaw);
+                Response<Candidate> response = jsonParser.fromJson(io.receive(), Response.class);
+                Candidate candidate = response.data(Candidate.class);
+
+                CandidateStore store = CandidateStore.getInstance();
+                store.setCandidate(candidate, candidateLoginResponse.token());
+
+                CandidateArea candidateArea = new CandidateArea();
+                candidateArea.setVisible(true);
+
+            } catch (IOException err) {
+                throw new RuntimeException(err);
+            }
+
         });
     }
 
