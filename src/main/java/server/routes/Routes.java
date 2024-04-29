@@ -4,41 +4,34 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.Claim;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.internal.LinkedTreeMap;
 import enums.Operations;
 import enums.Roles;
 import enums.Statuses;
 import helpers.singletons.Database;
+import helpers.singletons.IOServerConnection;
 import helpers.singletons.Json;
 import models.Candidate;
 import records.*;
-
-import java.io.PrintWriter;
 import java.util.Map;
 
 public class Routes {
-    private PrintWriter out;
     private final Json json = Json.getInstance();
     private  final Database db = Database.getInstance();
     private final Algorithm algorithm = Algorithm.HMAC256("DISTRIBUIDOS");
+    private final IOServerConnection io = IOServerConnection.getInstance();
     private final JWTVerifier verifier = JWT.require(algorithm)
             .build();
-    public Routes(PrintWriter out){
-        this.out = out;
+    public Routes(){
+
     }
     public void responseMessage(Response<?> toSendResponse){
-        String responseMessageJson = json.toJson(toSendResponse);
-        System.out.println(responseMessageJson);
-        out.println(responseMessageJson);
+        io.send(toSendResponse);
     }
-    public void receiveRequest(String receivedRequest){
-        Request receivedMessage = json.fromJson(receivedRequest, Request.class);
+    public void receiveRequest(Request<?> receivedRequest){
 
-        switch (receivedMessage.operation()){
+        switch (receivedRequest.operation()){
             case LOGIN_CANDIDATE -> {
-                CandidateLoginRequest candidateLogin = (CandidateLoginRequest) receivedMessage.data(CandidateLoginRequest.class);
+                CandidateLoginRequest candidateLogin =  receivedRequest.withDataClass(CandidateLoginRequest.class).data();
 
                 try{
                     Candidate candidate = db.getOneByQuery("SELECT c FROM Candidate c WHERE c.email = '"+candidateLogin.email()+"' AND c.password = '"+candidateLogin.password()+"'", Candidate.class);
@@ -46,7 +39,7 @@ public class Routes {
                             .withClaim("id", candidate.getId())
                             .withClaim("role", Roles.CANDIDATE.toString())
                             .sign(algorithm);
-                    Response<CandidateLoginResponse> response = new Response<CandidateLoginResponse>(Operations.LOGIN_CANDIDATE, Statuses.SUCCESS,new CandidateLoginResponse(token));
+                    Response<CandidateLoginResponse> response = new Response<CandidateLoginResponse>(Operations.LOGIN_CANDIDATE, Statuses.SUCCESS, token);
                     responseMessage(response);
                 }
                 catch (Exception e){
@@ -57,7 +50,7 @@ public class Routes {
 
             }
             case SIGNUP_CANDIDATE -> {
-                CandidateSignUpRequest candidateSignUp = (CandidateSignUpRequest) receivedMessage.data(CandidateSignUpRequest.class);
+                CandidateSignUpRequest candidateSignUp = receivedRequest.withDataClass(CandidateSignUpRequest.class).data();
                 Candidate candidate = new Candidate();
                 candidate.setEmail(candidateSignUp.email());
                 candidate.setPassword(candidateSignUp.password());
@@ -69,17 +62,29 @@ public class Routes {
                 responseMessage(response);
             }
             case LOOKUP_ACCOUNT_CANDIDATE -> {
-                String token = receivedMessage.token();
+                String token = receivedRequest.token();
                 try{
                     verifier.verify(token);
                     Map<String, Claim> decoded = JWT.decode(token).getClaims();
                     int id = decoded.get("id").asInt();
                     Candidate candidate = db.getOneByQuery("SELECT c FROM Candidate c WHERE c.id = "+id, Candidate.class);
-                    Response<Candidate> response = new Response<Candidate>(Operations.LOOKUP_ACCOUNT_CANDIDATE, Statuses.SUCCESS, candidate);
+                    Response<Candidate> response = new Response<>(Operations.LOOKUP_ACCOUNT_CANDIDATE, Statuses.SUCCESS, candidate);
                     responseMessage(response);
                 }
                 catch (Exception e){
-                    Response<Candidate> response = new Response<Candidate>(Operations.LOOKUP_ACCOUNT_CANDIDATE, Statuses.USER_NOT_FOUND);
+                    Response<Candidate> response = new Response<>(Operations.LOOKUP_ACCOUNT_CANDIDATE, Statuses.USER_NOT_FOUND);
+                    responseMessage(response);
+                }
+            }
+            case LOGOUT_CANDIDATE -> {
+                String token = receivedRequest.token();
+                try{
+                    verifier.verify(token);
+                    Response<Candidate> response = new Response<>(Operations.LOGOUT_CANDIDATE,Statuses.SUCCESS, token);
+                    responseMessage(response);
+                }
+                catch (Exception e){
+                    Response<Candidate> response = new Response<>(Operations.LOGOUT_CANDIDATE, Statuses.USER_NOT_FOUND);
                     responseMessage(response);
                 }
             }

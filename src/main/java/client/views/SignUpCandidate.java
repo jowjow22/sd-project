@@ -1,8 +1,8 @@
 package client.views;
 
 import enums.Operations;
+import enums.Statuses;
 import helpers.singletons.IOConnection;
-import helpers.singletons.Json;
 import records.*;
 
 import javax.swing.*;
@@ -34,57 +34,49 @@ public class SignUpCandidate extends JDialog {
         goToLogin.setFont(font);
         goToLogin.setForeground(Color.BLUE);
 
-        goToLogin.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-                LoginUser login = new LoginUser();
-                login.setVisible(true);
-            }
+        goToLogin.addActionListener(e -> {
+            dispose();
+            LoginUser login = new LoginUser();
+            login.setVisible(true);
         });
 
-        sendButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                String userName = name.getText();
-                String userEmail = email.getText();
-                String userPassword = new String(password.getPassword());
+        sendButton.addActionListener(e -> {
+            String userName = name.getText();
+            String userEmail = email.getText();
+            String userPassword = new String(password.getPassword());
 
 
-                CandidateSignUpRequest candidateLogin = new CandidateSignUpRequest(userName, userEmail, userPassword);
+            CandidateSignUpRequest candidateLogin = new CandidateSignUpRequest(userName, userEmail, userPassword);
 
-                Request request = new Request<>(Operations.SIGNUP_CANDIDATE, candidateLogin);
+            Request<?> request = new Request<>(Operations.SIGNUP_CANDIDATE, candidateLogin);
 
-                IOConnection io = IOConnection.getInstance();
-                Json jsonParser = Json.getInstance();
+            IOConnection io = IOConnection.getInstance();
 
-                String json = jsonParser.toJson(request);
-                System.out.println(json);
-                io.send(json);
-                Response<CandidateLoginResponse> receivedMessage = null;
-                try {
-                    String response = io.receive();
-                    receivedMessage = jsonParser.fromJson(response, Response.class);
-                    System.out.println("response "+ response);
-                } catch (IOException err) {
-                    throw new RuntimeException(err);
-                }
-
-                CandidateLoginResponse candidateLoginResponse = receivedMessage.data(CandidateLoginResponse.class);
-
-                LoginUser login = new LoginUser();
-                login.setVisible(true);
+            io.send(request);
+            Response<CandidateLoginResponse> response;
+            try {
+                response = io.receive(CandidateLoginResponse.class);
+            } catch (IOException err) {
+                throw new RuntimeException(err);
             }
+
+            if (response.status() == Statuses.SUCCESS) {
+                JOptionPane.showMessageDialog(null, "Account created successfully");
+            } else {
+                JOptionPane.showMessageDialog(null, "Account creation failed");
+            }
+
+            LoginUser login = new LoginUser();
+            login.setVisible(true);
         });
 
-        returnButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-                SignOptions signOptions = new SignOptions();
-                signOptions.pack();
-                signOptions.setVisible(true);
-            }
+        returnButton.addActionListener(e -> {
+            dispose();
+            SignOptions signOptions = new SignOptions();
+            signOptions.pack();
+            signOptions.setVisible(true);
         });
 
-        // call onCancel() when cross is clicked
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -92,21 +84,12 @@ public class SignUpCandidate extends JDialog {
             }
         });
 
-        // call onCancel() on ESCAPE
-        contentPane.registerKeyboardAction(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                onCancel();
-            }
-        }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        contentPane.registerKeyboardAction(e -> onCancel(), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     }
 
-    private void onOK() {
-        // add your code here
-        dispose();
-    }
 
     private void onCancel() {
-        // add your code here if necessary
+
         dispose();
     }
 

@@ -1,5 +1,8 @@
 package helpers.singletons;
 
+import records.Request;
+import records.Response;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,6 +18,8 @@ public class IOConnection {
 
     private String SERVER_HOST = "localhost";
     private int SERVER_PORT = 20001;
+
+    private final Json json = Json.getInstance();
 
     private IOConnection(String serverHost, int serverPort) {
         this.SERVER_HOST = serverHost;
@@ -43,12 +48,17 @@ public class IOConnection {
         setIO(out, in);
     }
 
-    public void send(String message) {
-        out.println(message);
+    public void send(Request<?> request) {
+        String requestRaw = json.toJson(request);
+        System.out.println("[LOG]: Sending request: " + requestRaw);
+        out.println(requestRaw);
     }
 
-    public String receive() throws IOException {
-        return in.readLine();
+    public <DT> Response<DT> receive(Class<DT> dataClass) throws IOException {
+        String responseRaw = in.readLine();
+        System.out.println("[LOG]: Receiving response: " + responseRaw);
+        Response<?> response = json.fromJson(responseRaw, Response.class);
+        return response.withDataClass(dataClass);
     }
 
     private void setIO(PrintWriter out, BufferedReader in) {

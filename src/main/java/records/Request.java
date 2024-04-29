@@ -1,11 +1,8 @@
 package records;
 
-
-import com.google.gson.internal.LinkedTreeMap;
 import enums.Operations;
 import helpers.singletons.Json;
-import lombok.Getter;
-
+@SuppressWarnings("unchecked")
 public record Request<T>(Operations operation, String token, T data) {
     public Request(Operations operation, T data) {
         this(operation, null, data);
@@ -13,9 +10,9 @@ public record Request<T>(Operations operation, String token, T data) {
     public Request(Operations operation, String token) {
         this(operation, token, (T) new Object());
     }
-    public T data(Class<T> classOfT) {
-        Json jsonParser = Json.getInstance();
-        String toJson = jsonParser.toJson(data);
-        return jsonParser.fromJson(toJson, classOfT);
+    public <DT> Request<DT> withDataClass(Class<DT> dataClass) {
+        String toJson = Json.getInstance().toJson(data);
+        DT data = Json.getInstance().fromJson(toJson, dataClass);
+        return new Request<DT>(operation, token, data);
     }
 }

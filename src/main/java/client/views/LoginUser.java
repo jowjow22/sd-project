@@ -3,8 +3,6 @@ package client.views;
 import client.store.CandidateStore;
 import enums.Operations;
 import helpers.singletons.IOConnection;
-import helpers.singletons.Json;
-import lombok.Getter;
 import models.Candidate;
 import records.CandidateLoginRequest;
 import records.CandidateLoginResponse;
@@ -25,9 +23,6 @@ public class LoginUser extends JDialog {
     private String userEmail;
     private String userPassword;
 
-    @Getter
-    private Request<CandidateLoginRequest> request;
-
     public LoginUser() {
         setContentPane(contentPane);
         setModal(true);
@@ -45,43 +40,34 @@ public class LoginUser extends JDialog {
             userEmail = email.getText();
             userPassword = new String(password.getPassword());
 
-            CandidateLoginRequest candidateLogin = new CandidateLoginRequest(userEmail, userPassword);
 
-            this.request = new Request<CandidateLoginRequest>(Operations.LOGIN_CANDIDATE,candidateLogin);
 
             IOConnection io = IOConnection.getInstance();
-            Json jsonParser = Json.getInstance();
 
-            String json = jsonParser.toJson(request);
-            System.out.println(json);
-            io.send(json);
-            Response<CandidateLoginResponse> receivedMessage = null;
+            CandidateLoginRequest candidateLogin = new CandidateLoginRequest(userEmail, userPassword);
+            Request<CandidateLoginRequest> request = new Request<>(Operations.LOGIN_CANDIDATE,candidateLogin);
+            io.send(request);
+            Response<CandidateLoginResponse> receivedMessage;
             try {
-                String response = io.receive();
-                System.out.println(response);
-                receivedMessage = jsonParser.fromJson(response, Response.class);
+                receivedMessage = io.receive(CandidateLoginResponse.class);
             } catch (IOException err) {
                 throw new RuntimeException(err);
             }
 
-            CandidateLoginResponse candidateLoginResponse = receivedMessage.data(CandidateLoginResponse.class);
-            System.out.println("Token: " + receivedMessage.token());
-            this.request = new Request<CandidateLoginRequest>(Operations.LOOKUP_ACCOUNT_CANDIDATE, receivedMessage.token());
-            json = jsonParser.toJson(request);
+            CandidateLoginResponse candidateLoginResponse = receivedMessage.data();
+            request = new Request<>(Operations.LOOKUP_ACCOUNT_CANDIDATE, receivedMessage.token());
+            System.out.println(receivedMessage.token());
 
-            System.out.println(json);
-            io.send(json);
+            io.send(request);
 
             try {
 
                 dispose();
-                String responseRaw = io.receive();
-                System.out.println(responseRaw);
-                Response<Candidate> response = jsonParser.fromJson(io.receive(), Response.class);
-                Candidate candidate = response.data(Candidate.class);
+                Response<Candidate> response = io.receive(Candidate.class);
+                Candidate candidate = response.data();
 
                 CandidateStore store = CandidateStore.getInstance();
-                store.setCandidate(candidate, candidateLoginResponse.token());
+                store.setCandidate(candidate, receivedMessage.token());
 
                 CandidateArea candidateArea = new CandidateArea();
                 candidateArea.setVisible(true);

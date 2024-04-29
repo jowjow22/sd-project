@@ -30,7 +30,6 @@ public class StartConnection extends JDialog {
                 dispose();
         });
         buttonOK.addActionListener(e -> {
-                System.out.println("onOK");
                 serverIp = ip.getText();
                 serverPort = Integer.parseInt(port.getText());
                 dispose();
