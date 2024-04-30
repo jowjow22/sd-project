@@ -2,6 +2,12 @@ package server;
 import java.io.*;
 import java.net.*;
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import records.Request;
 import records.Response;
 
@@ -50,10 +56,10 @@ public class Server extends Thread{
                 BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
         ){
-            IOServerConnection io = IOServerConnection.getInstance(out, in);
+            IOServerConnection io = new IOServerConnection(out, in);
             Request<?> request;
             while((request = io.receive(Object.class, in.readLine())) != null){
-                Routes routes = new Routes();
+                Routes routes = new Routes(io);
                 routes.receiveRequest(request);
             }
         }

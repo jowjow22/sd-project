@@ -61,6 +61,7 @@ public class SignUpCandidate extends JDialog {
             }
 
             if (response.status() == Statuses.SUCCESS) {
+                dispose();
                 JOptionPane.showMessageDialog(null, "Account created successfully");
             } else {
                 JOptionPane.showMessageDialog(null, "Account creation failed");

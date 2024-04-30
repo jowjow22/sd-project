@@ -16,24 +16,11 @@ public class IOServerConnection {
 
     private final Json json = Json.getInstance();
 
-    private IOServerConnection(PrintWriter out, BufferedReader in) {
+    public IOServerConnection(PrintWriter out, BufferedReader in) {
         this.out = out;
         this.in = in;
     }
     private IOServerConnection() {
-    }
-
-    public static IOServerConnection getInstance(PrintWriter out, BufferedReader in) {
-        if (instance == null) {
-            instance = new IOServerConnection(out,in);
-        }
-        return instance;
-    }
-    public static IOServerConnection getInstance() {
-        if (instance == null) {
-            instance = new IOServerConnection();
-        }
-        return instance;
     }
 
     public void setIO(PrintWriter out, BufferedReader in) {

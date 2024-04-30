@@ -22,8 +22,11 @@ public class CandidateStore {
         return instance;
     }
 
-    public void setCandidate(Candidate candidate, String token) {
+    public void setCandidate(Candidate candidate) {
         this.candidate = candidate;
+
+    }
+    public void setToken(String token) {
         this.token = token;
     }
 

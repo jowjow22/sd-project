@@ -12,6 +12,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 import java.util.List;
 
 public class CandidateArea extends JDialog {
@@ -30,12 +31,28 @@ public class CandidateArea extends JDialog {
 
         CandidateStore candidateStore = CandidateStore.getInstance();
 
-        Candidate candidate = candidateStore.getCandidate();
-
-        List<Candidate> candidates = List.of(candidate);
-
         DefaultTableModel model = new DefaultTableModel();
 
+
+        try {
+            Request request = new Request<>(Operations.LOOKUP_ACCOUNT_CANDIDATE, candidateStore.getToken());
+
+
+            io.send(request);
+            Response<Candidate> response = io.receive(Candidate.class);
+            Candidate candidate = response.data();
+
+            CandidateStore store = CandidateStore.getInstance();
+            store.setCandidate(candidate);
+
+
+
+        } catch (IOException err) {
+            throw new RuntimeException(err);
+        }
+
+        Candidate candidate = candidateStore.getCandidate();
+        List<Candidate> candidates = List.of(candidate);
 
         model.setColumnIdentifiers(new Object[]{"Name", "Email"});
 
@@ -79,6 +96,32 @@ public class CandidateArea extends JDialog {
                 } catch (Exception err) {
                     throw new RuntimeException(err);
                 }
+            }
+        });
+        updateAccount.addActionListener(e -> {
+            dispose();
+            UpdateCandidateData updateCandidateData = new UpdateCandidateData();
+            updateCandidateData.setVisible(true);
+        });
+        deleteAccountButton.addActionListener(e -> {
+            Request request = new Request<>(Operations.DELETE_ACCOUNT_CANDIDATE, candidateStore.getToken());
+            io.send(request);
+            try {
+                Response<Object> response = io.receive(Object.class);
+
+                if (response.status().equals(Statuses.SUCCESS)) {
+                    dispose();
+                    JOptionPane.showMessageDialog(null, "Account deleted successfully");
+                    SignOptions signOptions = new SignOptions();
+                    signOptions.pack();
+                    signOptions.setVisible(true);
+                }
+                else {
+                    JOptionPane.showMessageDialog(null, "Error deleting account");
+                }
+
+            } catch (Exception err) {
+                throw new RuntimeException(err);
             }
         });
     }

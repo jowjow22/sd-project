@@ -18,11 +18,11 @@ public class Routes {
     private final Json json = Json.getInstance();
     private  final Database db = Database.getInstance();
     private final Algorithm algorithm = Algorithm.HMAC256("DISTRIBUIDOS");
-    private final IOServerConnection io = IOServerConnection.getInstance();
+    private final IOServerConnection io;
     private final JWTVerifier verifier = JWT.require(algorithm)
             .build();
-    public Routes(){
-
+    public Routes(IOServerConnection io){
+        this.io = io;
     }
     public void responseMessage(Response<?> toSendResponse){
         io.send(toSendResponse);
@@ -85,6 +85,43 @@ public class Routes {
                 }
                 catch (Exception e){
                     Response<Candidate> response = new Response<>(Operations.LOGOUT_CANDIDATE, Statuses.USER_NOT_FOUND);
+                    responseMessage(response);
+                }
+            }
+            case DELETE_ACCOUNT_CANDIDATE -> {
+                String token = receivedRequest.token();
+                try{
+                    verifier.verify(token);
+                    Map<String, Claim> decoded = JWT.decode(token).getClaims();
+                    int id = decoded.get("id").asInt();
+                    Candidate candidate = db.selectByPK(Candidate.class, id);
+                    db.delete(candidate);
+                    Response<Candidate> response = new Response<>(Operations.DELETE_ACCOUNT_CANDIDATE, Statuses.SUCCESS);
+                    responseMessage(response);
+                }
+                catch (Exception e){
+                    Response<Candidate> response = new Response<>(Operations.DELETE_ACCOUNT_CANDIDATE, Statuses.USER_NOT_FOUND);
+                    responseMessage(response);
+                }
+            }
+            case UPDATE_ACCOUNT_CANDIDATE -> {
+                CandidateSignUpRequest candidateSignUp = receivedRequest.withDataClass(CandidateSignUpRequest.class).data();
+                String token = receivedRequest.token();
+                try{
+                    verifier.verify(token);
+                    Map<String, Claim> decoded = JWT.decode(token).getClaims();
+                    int id = decoded.get("id").asInt();
+                    Candidate candidate = db.selectByPK(Candidate.class, id);
+                    candidate.setEmail(candidateSignUp.email());
+                    candidate.setPassword(candidateSignUp.password());
+                    candidate.setName(candidateSignUp.name());
+                    candidate.setId(id);
+                    db.update(candidate);
+                    Response<Candidate> response = new Response<>(Operations.UPDATE_ACCOUNT_CANDIDATE, Statuses.SUCCESS);
+                    responseMessage(response);
+                }
+                catch (Exception e){
+                    Response<Candidate> response = new Response<>(Operations.UPDATE_ACCOUNT_CANDIDATE, Statuses.USER_NOT_FOUND);
                     responseMessage(response);
                 }
             }

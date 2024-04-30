@@ -2,6 +2,7 @@ package client.views;
 
 import client.store.CandidateStore;
 import enums.Operations;
+import enums.Statuses;
 import helpers.singletons.IOConnection;
 import models.Candidate;
 import records.CandidateLoginRequest;
@@ -50,32 +51,19 @@ public class LoginUser extends JDialog {
             Response<CandidateLoginResponse> receivedMessage;
             try {
                 receivedMessage = io.receive(CandidateLoginResponse.class);
-            } catch (IOException err) {
-                throw new RuntimeException(err);
-            }
 
-            CandidateLoginResponse candidateLoginResponse = receivedMessage.data();
-            request = new Request<>(Operations.LOOKUP_ACCOUNT_CANDIDATE, receivedMessage.token());
-            System.out.println(receivedMessage.token());
-
-            io.send(request);
-
-            try {
-
+                if (receivedMessage.status().equals(Statuses.USER_NOT_FOUND)) {
+                    JOptionPane.showMessageDialog(null, "User not found");
+                    return;
+                }
                 dispose();
-                Response<Candidate> response = io.receive(Candidate.class);
-                Candidate candidate = response.data();
-
                 CandidateStore store = CandidateStore.getInstance();
-                store.setCandidate(candidate, receivedMessage.token());
-
+                store.setToken(receivedMessage.token());
                 CandidateArea candidateArea = new CandidateArea();
                 candidateArea.setVisible(true);
-
             } catch (IOException err) {
                 throw new RuntimeException(err);
             }
-
         });
     }
 
