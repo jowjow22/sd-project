@@ -39,11 +39,12 @@ public class Routes {
                             .withClaim("id", candidate.getId())
                             .withClaim("role", Roles.CANDIDATE.toString())
                             .sign(algorithm);
-                    Response<CandidateLoginResponse> response = new Response<CandidateLoginResponse>(Operations.LOGIN_CANDIDATE, Statuses.SUCCESS, token);
+                    CandidateLoginResponse candidateLoginResponse = new CandidateLoginResponse(token);
+                    Response<CandidateLoginResponse> response = new Response<>(Operations.LOGIN_CANDIDATE, Statuses.SUCCESS, candidateLoginResponse);
                     responseMessage(response);
                 }
                 catch (Exception e){
-                    Response<CandidateLoginResponse> response = new Response<>(Operations.LOGIN_CANDIDATE, Statuses.USER_NOT_FOUND);
+                    Response<CandidateLoginResponse> response = new Response<>(Operations.LOGIN_CANDIDATE, Statuses.INVALID_LOGIN);
                     responseMessage(response);
                 }
 
@@ -58,7 +59,7 @@ public class Routes {
 
                 db.insert(candidate);
 
-                Response<CandidateLoginResponse> response = new Response<CandidateLoginResponse>(Operations.SIGNUP_CANDIDATE, Statuses.SUCCESS);
+                Response response = new Response<CandidateLoginResponse>(Operations.SIGNUP_CANDIDATE, Statuses.SUCCESS);
                 responseMessage(response);
             }
             case LOOKUP_ACCOUNT_CANDIDATE -> {
@@ -80,7 +81,7 @@ public class Routes {
                 String token = receivedRequest.token();
                 try{
                     verifier.verify(token);
-                    Response<Candidate> response = new Response<>(Operations.LOGOUT_CANDIDATE,Statuses.SUCCESS, token);
+                    Response<Candidate> response = new Response<>(Operations.LOGOUT_CANDIDATE,Statuses.SUCCESS);
                     responseMessage(response);
                 }
                 catch (Exception e){
