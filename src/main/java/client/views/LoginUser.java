@@ -52,13 +52,13 @@ public class LoginUser extends JDialog {
             try {
                 receivedMessage = io.receive(CandidateLoginResponse.class);
 
-                if (receivedMessage.status().equals(Statuses.USER_NOT_FOUND)) {
-                    JOptionPane.showMessageDialog(null, "User not found");
+                if (receivedMessage.status().equals(Statuses.INVALID_LOGIN)) {
+                    JOptionPane.showMessageDialog(null, "Login inválido", "Erro", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 dispose();
                 CandidateStore store = CandidateStore.getInstance();
-                store.setToken(receivedMessage.token());
+                store.setToken(receivedMessage.data().token());
                 CandidateArea candidateArea = new CandidateArea();
                 candidateArea.setVisible(true);
             } catch (IOException err) {
