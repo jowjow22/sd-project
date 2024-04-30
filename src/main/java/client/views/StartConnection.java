@@ -1,10 +1,9 @@
-package client;
+package client.views;
 
 import lombok.Getter;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 
 public class StartConnection extends JDialog {
 
@@ -31,7 +30,6 @@ public class StartConnection extends JDialog {
                 dispose();
         });
         buttonOK.addActionListener(e -> {
-                System.out.println("onOK");
                 serverIp = ip.getText();
                 serverPort = Integer.parseInt(port.getText());
                 dispose();
