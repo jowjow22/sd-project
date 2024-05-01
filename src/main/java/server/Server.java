@@ -1,15 +1,15 @@
 package server;
 import java.io.*;
 import java.net.*;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.FieldNamingPolicy;
-import models.MessageModel;
+
+import com.google.gson.internal.LinkedTreeMap;
+import enums.Operations;
+import enums.Statuses;
+import helpers.Json;
+import records.*;
 
 public class Server extends Thread{
     private final Socket client;
-    private Gson gson = new GsonBuilder()
-            .create();
     public static void main(String[] args)   {
         try {
             Server.startConnection();
@@ -51,20 +51,83 @@ public class Server extends Thread{
                 PrintWriter out = new PrintWriter(client.getOutputStream(), true);
                 BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()))
         ){
-            String inputLine;
-            while((inputLine = in.readLine())!= null){
-                String json = inputLine;
-                System.out.println(json);
-                MessageModel receivedMessage = gson.fromJson(json, MessageModel.class);
-                System.out.println(receivedMessage.getMessage());
-                System.out.println("Message from" + client.getInetAddress() + ": "+ receivedMessage.getMessage());
-                MessageModel sendedMessage = new MessageModel(receivedMessage.getMessage().toUpperCase());
-                String responseMessageJson = gson.toJson(sendedMessage);
-                out.println(responseMessageJson);
+            String request;
+            while((request = in.readLine()) != null){
+
+                Json json = Json.getInstance();
+                Request<?> clientRequest = json.fromJson(request, Request.class);
+                Operations operation = clientRequest.operation();
+
+                Response<?> response;
+
+                switch(operation){
+                    case LOGIN_CANDIDATE -> {
+                        System.out.println("\n[LOG]: Requested Operation: candidate login.");
+                        LinkedTreeMap<String, ?> data = (LinkedTreeMap<String, ?>) clientRequest.data();
+                        System.out.println("[LOG]: Email: " + data.get("email"));
+                        System.out.println("[LOG]: Password: " + data.get("password"));
+
+                        CandidateLoginResponse responseModel = new CandidateLoginResponse("algumacoisa");
+                        response = new Response<>(operation, Statuses.SUCCESS, responseModel);
+                        String jsonResponse = json.toJson(response);
+
+                        System.out.println("[LOG]: SENDING RESPONSE: " + jsonResponse);
+                        out.println(jsonResponse);
+                    }
+                    case SIGNUP_CANDIDATE -> {
+                        System.out.println("\n[LOG]: Requested Operation: candidate sign up.");
+                        LinkedTreeMap<String, ?> data = (LinkedTreeMap<String, ?>) clientRequest.data();
+                        System.out.println("[LOG]: Email: " + data.get("email"));
+                        System.out.println("[LOG]: Password: " + data.get("password"));
+                        System.out.println("[LOG]: Name: " + data.get("name"));
+
+                        CandidateSignUpResponse responseModel = new CandidateSignUpResponse();
+                        response = new Response<>(operation, Statuses.SUCCESS, responseModel);
+                        String jsonResponse = json.toJson(response);
+
+                        System.out.println("[LOG]: SENDING RESPONSE: " + jsonResponse);
+                        out.println(jsonResponse);
+                    }
+                    case LOGOUT_CANDIDATE -> {
+                        System.out.println("\n[LOG]: Requested Operation: candidate logout.");
+                        LinkedTreeMap<String, ?> data = (LinkedTreeMap<String, ?>) clientRequest.data();
+                        System.out.println("[LOG]: Token: " + data.get("token"));
+
+                        CandidateLogoutResponse responseModel = new CandidateLogoutResponse();
+                        response = new Response<>(operation, Statuses.SUCCESS, responseModel);
+                        String jsonResponse = json.toJson(response);
+
+                        System.out.println("[LOG]: SENDING RESPONSE: " + jsonResponse);
+                        out.println(jsonResponse);
+                    }
+                    case LOOKUP_ACCOUNT_CANDIDATE -> {
+                        System.out.println("\n[LOG]: Requested Operation: candidate look up.");
+                        LinkedTreeMap<String, ?> data = (LinkedTreeMap<String, ?>) clientRequest.data();
+                        System.out.println("[LOG]: Token: " + data.get("token"));
+
+                        CandidateLookupResponse responseModel = new CandidateLookupResponse("alo", "bom dia", "algumacoisa");
+                        response = new Response<>(operation, Statuses.SUCCESS, responseModel);
+                        String jsonResponse = json.toJson(response);
+
+                        System.out.println("[LOG]: SENDING RESPONSE: " + jsonResponse);
+                        out.println(jsonResponse);
+                    }
+                    case UPDATE_ACCOUNT_CANDIDATE -> {
+                        System.out.println("\n[LOG]: Requested Operation: candidate update.");
+                        LinkedTreeMap<String, ?> data = (LinkedTreeMap<String, ?>) clientRequest.data();
+                        System.out.println("[LOG]: Email: " + data.get("email"));
+                        System.out.println("[LOG]: Password: " + data.get("password"));
+                        System.out.println("[LOG]: Name: " + data.get("name"));
+
+                        CandidateUpdateResponse responseModel = new CandidateUpdateResponse();
+                        response = new Response<>(operation, Statuses.SUCCESS, responseModel);
+                        String jsonResponse = json.toJson(response);
+
+                        System.out.println("[LOG]: SENDING RESPONSE: " + jsonResponse);
+                        out.println(jsonResponse);
+                    }
+                }
             }
-            out.close();
-            in.close();
-            client.close();
         }
         catch (IOException e){
             System.out.println(e.getMessage());
