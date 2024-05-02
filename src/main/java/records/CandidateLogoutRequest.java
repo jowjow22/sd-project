@@ -1,4 +1,4 @@
 package records;
 
-public record CandidateLogoutRequest(String token) {
+public record CandidateLogoutRequest() {
 }

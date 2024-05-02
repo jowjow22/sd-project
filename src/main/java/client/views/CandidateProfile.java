@@ -21,9 +21,15 @@ public class CandidateProfile extends JDialog {
     private JTextField nameField;
     private JTextField emailField;
     private JTextField passwordField;
+    private String token;
+
+    public CandidateProfile(String token) {
+        this();
+        this.token = token;
+        lookUp();
+    }
 
     public CandidateProfile() {
-        lookUp();
         setContentPane(contentPane);
         setMinimumSize(new Dimension(500, 500));
         setModal(true);
@@ -49,7 +55,7 @@ public class CandidateProfile extends JDialog {
         ClientConnection clientConnection = ClientConnection.getInstance();
 
         CandidateUpdateRequest updateModel = new CandidateUpdateRequest(emailField.getText(), passwordField.getText(), nameField.getText());
-        Request<CandidateUpdateRequest> request = new Request<>(Operations.UPDATE_ACCOUNT_CANDIDATE, updateModel);
+        Request<CandidateUpdateRequest> request = new Request<>(Operations.UPDATE_ACCOUNT_CANDIDATE, this.token, updateModel);
 
         clientConnection.send(request);
 
@@ -69,15 +75,14 @@ public class CandidateProfile extends JDialog {
 
     private void onCancel() {
         dispose();
-        CandidateHome candidateHome = new CandidateHome();
+        CandidateHome candidateHome = new CandidateHome(this.token);
         candidateHome.setVisible(true);
     }
 
     private void lookUp() {
         ClientConnection clientConnection = ClientConnection.getInstance();
 
-        CandidateLookupRequest lookupModel = new CandidateLookupRequest("algumacoisa");
-        Request<CandidateLookupRequest> request = new Request<>(Operations.LOOKUP_ACCOUNT_CANDIDATE, lookupModel);
+        Request<?> request = new Request<>(Operations.LOOKUP_ACCOUNT_CANDIDATE, this.token);
 
         clientConnection.send(request);
 

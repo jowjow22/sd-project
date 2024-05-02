@@ -1,5 +1,6 @@
 package client.views;
 
+import com.google.gson.internal.LinkedTreeMap;
 import enums.Operations;
 import enums.Statuses;
 import helpers.ClientConnection;
@@ -56,6 +57,7 @@ public class CandidateLoginView extends JDialog {
 
         try {
             Response<?> response = clientConnection.receive();
+            LinkedTreeMap<String, ?> data = (LinkedTreeMap<String, ?>) response.data();
 
             if (response.status().equals(Statuses.INVALID_LOGIN)){
                 JOptionPane.showMessageDialog(null, "Incorrect fields");
@@ -63,7 +65,7 @@ public class CandidateLoginView extends JDialog {
             }
 
             dispose();
-            CandidateHome candidateHome = new CandidateHome();
+            CandidateHome candidateHome = new CandidateHome((String) data.get("token"));
             candidateHome.setVisible(true);
         } catch (IOException e) {
             throw new RuntimeException(e);
