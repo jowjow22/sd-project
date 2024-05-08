@@ -10,13 +10,10 @@ public class StartConnection extends JDialog {
     @Getter
     private String serverIp;
 
-    @Getter
-    private int serverPort;
     private JPanel contentPane;
     private JButton buttonOK;
     private JButton buttonCancel;
     private JTextField ip;
-    private JTextField port;
 
     public StartConnection() {
         setContentPane(contentPane);
@@ -31,7 +28,6 @@ public class StartConnection extends JDialog {
         });
         buttonOK.addActionListener(e -> {
                 serverIp = ip.getText();
-                serverPort = Integer.parseInt(port.getText());
                 dispose();
         });
         setVisible(true);

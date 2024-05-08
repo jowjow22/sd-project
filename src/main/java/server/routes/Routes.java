@@ -7,11 +7,16 @@ import com.auth0.jwt.interfaces.Claim;
 import enums.Operations;
 import enums.Roles;
 import enums.Statuses;
+import exceptions.EmailAlreadyInUseException;
 import helpers.singletons.Database;
 import helpers.singletons.IOServerConnection;
 import helpers.singletons.Json;
+import jakarta.persistence.NoResultException;
 import models.Candidate;
+import org.hibernate.exception.ConstraintViolationException;
 import records.*;
+
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Map;
 
 public class Routes {
@@ -56,10 +61,14 @@ public class Routes {
                 candidate.setEmail(candidateSignUp.email());
                 candidate.setPassword(candidateSignUp.password());
                 candidate.setName(candidateSignUp.name());
+                Response<?> response;
 
-                db.insert(candidate);
-
-                Response response = new Response<CandidateLoginResponse>(Operations.SIGNUP_CANDIDATE, Statuses.SUCCESS);
+                try {
+                    db.insert(candidate);
+                    response = new Response<CandidateLoginResponse>(Operations.SIGNUP_CANDIDATE, Statuses.SUCCESS);
+                }catch (EmailAlreadyInUseException e){
+                    response = new Response<CandidateLoginResponse>(Operations.SIGNUP_CANDIDATE, Statuses.INVALID_EMAIL);
+                }
                 responseMessage(response);
             }
             case LOOKUP_ACCOUNT_CANDIDATE -> {
@@ -117,7 +126,9 @@ public class Routes {
                     candidate.setPassword(candidateSignUp.password());
                     candidate.setName(candidateSignUp.name());
                     candidate.setId(id);
+
                     db.update(candidate);
+
                     Response<Candidate> response = new Response<>(Operations.UPDATE_ACCOUNT_CANDIDATE, Statuses.SUCCESS);
                     responseMessage(response);
                 }

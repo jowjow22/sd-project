@@ -13,7 +13,7 @@ public class Client {
 
 
         String serverHost = startConnection.getServerIp();
-        int serverPort = startConnection.getServerPort();
+        int serverPort = 21234;
         IOConnection io = IOConnection.getInstance(serverHost, serverPort);
 
         try {

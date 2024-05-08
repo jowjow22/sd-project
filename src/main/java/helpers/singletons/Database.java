@@ -7,6 +7,10 @@ import org.hibernate.Transaction;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.exception.ConstraintViolationException;
+
+import java.sql.SQLException;
+import exceptions.EmailAlreadyInUseException;
 
 public class Database {
     final StandardServiceRegistry registry = new StandardServiceRegistryBuilder().configure().build();
@@ -34,14 +38,22 @@ public class Database {
     }
 
     public <T> T getOneByQuery(String query, Class<T> entityClass) {
+        System.out.println(query);
         TypedQuery<T> typedQuery = session.createQuery(query, entityClass);
         return typedQuery.getSingleResult();
     }
 
-    public void insert(Object entity)  {
+    public void insert(Object entity) throws EmailAlreadyInUseException {
         Transaction transaction = session.beginTransaction();
-        session.persist(entity);
-        transaction.commit();
+        try {
+            session.persist(entity);
+        }
+        catch (ConstraintViolationException e){
+            throw new EmailAlreadyInUseException("Email already in use", e.getSQLException());
+        }
+        finally {
+            transaction.commit();
+        }
     }
 
     public void update(Object entity) {

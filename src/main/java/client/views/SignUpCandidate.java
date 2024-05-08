@@ -53,7 +53,7 @@ public class SignUpCandidate extends JDialog {
             IOConnection io = IOConnection.getInstance();
 
             io.send(request);
-            Response<CandidateLoginResponse> response;
+            Response<?> response;
             try {
                 response = io.receive(CandidateLoginResponse.class);
             } catch (IOException err) {
@@ -63,12 +63,13 @@ public class SignUpCandidate extends JDialog {
             if (response.status() == Statuses.SUCCESS) {
                 dispose();
                 JOptionPane.showMessageDialog(null, "Account created successfully");
+                LoginUser login = new LoginUser();
+                login.setVisible(true);
+            } else if (response.status() == Statuses.INVALID_EMAIL) {
+                JOptionPane.showMessageDialog(null, "Email already in use");
             } else {
                 JOptionPane.showMessageDialog(null, "Account creation failed");
             }
-
-            LoginUser login = new LoginUser();
-            login.setVisible(true);
         });
 
         returnButton.addActionListener(e -> {
