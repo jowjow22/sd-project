@@ -62,7 +62,6 @@ public class UpdateCandidateData extends JDialog {
     }
 
     private void sendUpdate() {
-        dispose();
         CandidateSignUpRequest candidateSignUpRequest = new CandidateSignUpRequest(name.getText(), email.getText(), new String(password.getPassword()));
         CandidateStore candidateStore = CandidateStore.getInstance();
         Request<CandidateSignUpRequest> request = new Request<>(Operations.UPDATE_ACCOUNT_CANDIDATE, candidateStore.getToken(), candidateSignUpRequest);
@@ -72,6 +71,7 @@ public class UpdateCandidateData extends JDialog {
         try{
             Response<?> response = io.receive(Response.class);
             if(response.status().equals(Statuses.SUCCESS)){
+                dispose();
                 JOptionPane.showMessageDialog(null, "Account updated successfully");
                 CandidateArea candidateArea = new CandidateArea();
                 candidateArea.setVisible(true);

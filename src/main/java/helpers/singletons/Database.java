@@ -38,7 +38,7 @@ public class Database {
         return typedQuery.getSingleResult();
     }
 
-    public void insert(Object entity) {
+    public void insert(Object entity)  {
         Transaction transaction = session.beginTransaction();
         session.persist(entity);
         transaction.commit();

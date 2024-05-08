@@ -5,4 +5,6 @@ public enum Statuses {
     ERROR,
     INVALID_LOGIN,
     USER_NOT_FOUND,
+    INVALID_EMAIL,
+    INVALID_FIELD,
 }
