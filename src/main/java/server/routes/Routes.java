@@ -117,7 +117,6 @@ public class Routes {
             case UPDATE_ACCOUNT_CANDIDATE -> {
                 CandidateSignUpRequest candidateSignUp = receivedRequest.withDataClass(CandidateSignUpRequest.class).data();
                 String token = receivedRequest.token();
-                try{
                     verifier.verify(token);
                     Map<String, Claim> decoded = JWT.decode(token).getClaims();
                     int id = decoded.get("id").asInt();
@@ -126,17 +125,17 @@ public class Routes {
                     candidate.setPassword(candidateSignUp.password());
                     candidate.setName(candidateSignUp.name());
                     candidate.setId(id);
+                    Response<Candidate> response;
+                    try{
+                        db.update(candidate);
+                        response = new Response<>(Operations.UPDATE_ACCOUNT_CANDIDATE, Statuses.SUCCESS);
+                    }catch (EmailAlreadyInUseException e){
+                        response = new Response<>(Operations.UPDATE_ACCOUNT_CANDIDATE, Statuses.INVALID_EMAIL);
+                    }
 
-                    db.update(candidate);
-
-                    Response<Candidate> response = new Response<>(Operations.UPDATE_ACCOUNT_CANDIDATE, Statuses.SUCCESS);
-                    responseMessage(response);
-                }
-                catch (Exception e){
-                    Response<Candidate> response = new Response<>(Operations.UPDATE_ACCOUNT_CANDIDATE, Statuses.USER_NOT_FOUND);
                     responseMessage(response);
                 }
             }
-        }
+
     }
 }

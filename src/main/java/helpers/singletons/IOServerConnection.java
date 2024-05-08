@@ -35,8 +35,16 @@ public class IOServerConnection {
     }
 
     public <DT> Request<DT> receive(Class<DT> dataClass, String responseRaw) throws IOException {
+        if(responseRaw == null){
+            System.out.println("[LOG]: Connection closed by client or error");
+            return null;
+        }
         System.out.println("[LOG]: Receiving request: " + responseRaw);
         Request<?> request = json.fromJson(responseRaw, Request.class);
         return request.withDataClass(dataClass);
+    }
+    public void close() throws IOException {
+        out.close();
+        in.close();
     }
 }

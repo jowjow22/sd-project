@@ -1,5 +1,7 @@
 package client.views;
 
+import helpers.singletons.IOConnection;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -8,6 +10,7 @@ public class SignOptions extends JDialog {
     private JPanel contentPane;
     private JButton candidateButton;
     private JButton RECRUITER;
+    private JButton exit;
 
     public SignOptions() {
         setContentPane(contentPane);
@@ -23,6 +26,8 @@ public class SignOptions extends JDialog {
 
         RECRUITER.addActionListener(e -> onCancel());
 
+        exit.addActionListener(e -> onCancel());
+
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -35,6 +40,12 @@ public class SignOptions extends JDialog {
 
 
     private void onCancel() {
+        IOConnection io = IOConnection.getInstance();
+        try {
+            io.close();
+        }catch (Exception e){
+            System.exit(1);
+        }
         dispose();
     }
 

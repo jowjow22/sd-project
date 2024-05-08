@@ -62,6 +62,7 @@ public class Server extends Thread{
                 Routes routes = new Routes(io);
                 routes.receiveRequest(request);
             }
+            io.close();
         }
         catch (IOException e){
             System.out.println(e.getMessage());

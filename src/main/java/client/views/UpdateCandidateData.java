@@ -75,8 +75,9 @@ public class UpdateCandidateData extends JDialog {
                 JOptionPane.showMessageDialog(null, "Account updated successfully");
                 CandidateArea candidateArea = new CandidateArea();
                 candidateArea.setVisible(true);
-            }
-            else{
+            } else if (response.status().equals(Statuses.INVALID_EMAIL)) {
+                JOptionPane.showMessageDialog(null, "Email already in use");
+            } else{
                 JOptionPane.showMessageDialog(null, "Account update failed");
             }
         }

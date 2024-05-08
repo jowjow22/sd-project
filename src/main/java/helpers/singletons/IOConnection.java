@@ -56,6 +56,10 @@ public class IOConnection {
 
     public <DT> Response<DT> receive(Class<DT> dataClass) throws IOException {
         String responseRaw = in.readLine();
+        if (responseRaw == null) {
+            System.out.println("[LOG]: Connection closed by server or error during the processing of request");
+            return null;
+        }
         System.out.println("[LOG]: Receiving response: " + responseRaw);
         Response<?> response = json.fromJson(responseRaw, Response.class);
         return response.withDataClass(dataClass);

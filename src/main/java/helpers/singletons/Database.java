@@ -56,10 +56,16 @@ public class Database {
         }
     }
 
-    public void update(Object entity) {
+    public void update(Object entity) throws  EmailAlreadyInUseException{
         Transaction transaction = session.beginTransaction();
-        session.update(entity);
-        transaction.commit();
+        try {
+            session.update(entity);
+            transaction.commit();
+        }
+        catch (ConstraintViolationException e){
+            System.out.printf("Email already in use: %s%n", e.getSQLException().getMessage());
+            throw new EmailAlreadyInUseException("Email already in use", e.getSQLException());
+        }
     }
 
     public void delete(Object entity) {
