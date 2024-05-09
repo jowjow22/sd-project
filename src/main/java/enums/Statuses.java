@@ -7,4 +7,5 @@ public enum Statuses {
     USER_NOT_FOUND,
     INVALID_EMAIL,
     INVALID_FIELD,
+    NULL_RESPONSE,
 }

@@ -7,4 +7,5 @@ public enum Operations {
     DELETE_ACCOUNT_CANDIDATE,
     LOGOUT_CANDIDATE,
     UPDATE_ACCOUNT_CANDIDATE,
+    UNKNOWN,
 }

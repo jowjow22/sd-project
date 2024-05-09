@@ -56,7 +56,7 @@ public class Routes {
 
             }
             case SIGNUP_CANDIDATE -> {
-                CandidateSignUpRequest candidateSignUp = receivedRequest.withDataClass(CandidateSignUpRequest.class).data();
+                CandidateSignUpAndUpdateRequest candidateSignUp = receivedRequest.withDataClass(CandidateSignUpAndUpdateRequest.class).data();
                 Candidate candidate = new Candidate();
                 candidate.setEmail(candidateSignUp.email());
                 candidate.setPassword(candidateSignUp.password());
@@ -115,15 +115,21 @@ public class Routes {
                 }
             }
             case UPDATE_ACCOUNT_CANDIDATE -> {
-                CandidateSignUpRequest candidateSignUp = receivedRequest.withDataClass(CandidateSignUpRequest.class).data();
+                CandidateSignUpAndUpdateRequest candidateUpdate = receivedRequest.withDataClass(CandidateSignUpAndUpdateRequest.class).data();
                 String token = receivedRequest.token();
                     verifier.verify(token);
                     Map<String, Claim> decoded = JWT.decode(token).getClaims();
                     int id = decoded.get("id").asInt();
                     Candidate candidate = db.selectByPK(Candidate.class, id);
-                    candidate.setEmail(candidateSignUp.email());
-                    candidate.setPassword(candidateSignUp.password());
-                    candidate.setName(candidateSignUp.name());
+                    if(candidateUpdate.email() != null){
+                        candidate.setEmail(candidateUpdate.email());
+                    }
+                    if(candidateUpdate.password() != null){
+                        candidate.setPassword(candidateUpdate.password());
+                    }
+                    if(candidateUpdate.name() != null){
+                        candidate.setName(candidateUpdate.name());
+                    }
                     candidate.setId(id);
                     Response<Candidate> response;
                     try{

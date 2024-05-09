@@ -1,5 +1,7 @@
 package helpers.singletons;
 
+import enums.Operations;
+import enums.Statuses;
 import records.Request;
 import records.Response;
 
@@ -58,7 +60,7 @@ public class IOConnection {
         String responseRaw = in.readLine();
         if (responseRaw == null) {
             System.out.println("[LOG]: Connection closed by server or error during the processing of request");
-            return null;
+            return new Response<>(Operations.UNKNOWN,Statuses.NULL_RESPONSE);
         }
         System.out.println("[LOG]: Receiving response: " + responseRaw);
         Response<?> response = json.fromJson(responseRaw, Response.class);

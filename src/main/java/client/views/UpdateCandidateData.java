@@ -5,13 +5,14 @@ import enums.Operations;
 import enums.Statuses;
 import helpers.singletons.IOConnection;
 import models.Candidate;
-import records.CandidateSignUpRequest;
+import records.CandidateSignUpAndUpdateRequest;
 import records.Request;
 import records.Response;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Objects;
 
 public class UpdateCandidateData extends JDialog {
     private JPanel contentPane;
@@ -62,9 +63,26 @@ public class UpdateCandidateData extends JDialog {
     }
 
     private void sendUpdate() {
-        CandidateSignUpRequest candidateSignUpRequest = new CandidateSignUpRequest(name.getText(), email.getText(), new String(password.getPassword()));
         CandidateStore candidateStore = CandidateStore.getInstance();
-        Request<CandidateSignUpRequest> request = new Request<>(Operations.UPDATE_ACCOUNT_CANDIDATE, candidateStore.getToken(), candidateSignUpRequest);
+        Candidate candidate = candidateStore.getCandidate();
+        //verify if the fields are empty
+        String nameToRequest = name.getText();
+        String emailToRequest = email.getText();
+        String passwordToRequest = new String(password.getPassword());
+
+        if (!nameToRequest.isEmpty()){
+            candidate.setName(nameToRequest);
+        }
+        if (!emailToRequest.isEmpty()){
+            candidate.setEmail(emailToRequest);
+        }
+        if (!passwordToRequest.isEmpty()){
+            candidate.setPassword(passwordToRequest);
+        }
+
+        System.out.println(nameToRequest + " " + emailToRequest + " " + passwordToRequest);
+        CandidateSignUpAndUpdateRequest candidateSignUpRequest = new CandidateSignUpAndUpdateRequest(candidate);
+        Request<CandidateSignUpAndUpdateRequest> request = new Request<>(Operations.UPDATE_ACCOUNT_CANDIDATE, candidateStore.getToken(), candidateSignUpRequest);
         IOConnection io = IOConnection.getInstance();
         io.send(request);
 

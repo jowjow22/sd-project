@@ -46,7 +46,7 @@ public class SignUpCandidate extends JDialog {
             String userPassword = new String(password.getPassword());
 
 
-            CandidateSignUpRequest candidateLogin = new CandidateSignUpRequest(userName, userEmail, userPassword);
+            CandidateSignUpAndUpdateRequest candidateLogin = new CandidateSignUpAndUpdateRequest(userName, userEmail, userPassword);
 
             Request<?> request = new Request<>(Operations.SIGNUP_CANDIDATE, candidateLogin);
 
