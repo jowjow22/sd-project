@@ -1,10 +1,9 @@
-package client.views;
+package client.views.candidate;
 
 import client.store.CandidateStore;
 import enums.Operations;
 import enums.Statuses;
 import helpers.singletons.IOConnection;
-import models.Candidate;
 import records.CandidateLoginRequest;
 import records.CandidateLoginResponse;
 import records.Request;

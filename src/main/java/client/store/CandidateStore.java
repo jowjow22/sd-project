@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import models.Candidate;
 
+
 @Getter
 @Setter
 public class CandidateStore {
@@ -20,14 +21,6 @@ public class CandidateStore {
             instance = new CandidateStore();
         }
         return instance;
-    }
-
-    public void setCandidate(Candidate candidate) {
-        this.candidate = candidate;
-
-    }
-    public void setToken(String token) {
-        this.token = token;
     }
 
 }

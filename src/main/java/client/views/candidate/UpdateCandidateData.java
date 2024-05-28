@@ -1,4 +1,4 @@
-package client.views;
+package client.views.candidate;
 
 import client.store.CandidateStore;
 import enums.Operations;
@@ -12,7 +12,6 @@ import records.Response;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Objects;
 
 public class UpdateCandidateData extends JDialog {
     private JPanel contentPane;
@@ -21,6 +20,8 @@ public class UpdateCandidateData extends JDialog {
     private JTextField email;
     private JPasswordField password;
     private JTextField name;
+    private JTextField industry;
+    private JTextField description;
 
     public UpdateCandidateData() {
         setContentPane(contentPane);

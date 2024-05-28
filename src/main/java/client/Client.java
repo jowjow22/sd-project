@@ -2,7 +2,6 @@ package client;
 import java.io.*;
 import java.net.*;
 
-import client.views.LoginUser;
 import client.views.SignOptions;
 import client.views.StartConnection;
 import helpers.singletons.IOConnection;
