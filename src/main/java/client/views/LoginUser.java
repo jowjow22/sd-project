@@ -52,7 +52,7 @@ public class LoginUser extends JDialog {
             try {
                 receivedMessage = io.receive(CandidateLoginResponse.class);
 
-                if (receivedMessage.status().equals(Statuses.INVALID_LOGIN)) {
+                if (receivedMessage.status().equals(Statuses.INVALID_LOGIN) || receivedMessage.status().equals(Statuses.INVALID_FIELD)){
                     JOptionPane.showMessageDialog(null, "Login inválido", "Erro", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
