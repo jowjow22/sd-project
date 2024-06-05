@@ -1,20 +1,16 @@
-package client.views;
+package client.views.recruiter;
 
-import client.store.CandidateStore;
+import client.store.RecruiterStore;
 import enums.Operations;
 import enums.Statuses;
 import helpers.singletons.IOConnection;
-import models.Candidate;
-import records.CandidateLoginRequest;
-import records.CandidateLoginResponse;
-import records.Request;
-import records.Response;
+import records.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 
-public class LoginUser extends JDialog {
+public class LoginRecruiter extends JDialog {
     private JPanel contentPane;
     private JButton buttonOK;
     private JButton buttonCancel;
@@ -24,7 +20,7 @@ public class LoginUser extends JDialog {
     private String userEmail;
     private String userPassword;
 
-    public LoginUser() {
+    public LoginRecruiter() {
         setContentPane(contentPane);
         setModal(true);
         setMinimumSize(new Dimension(400, 400));
@@ -33,8 +29,8 @@ public class LoginUser extends JDialog {
 
         buttonCancel.addActionListener(e -> {
             dispose();
-            SignUpCandidate signUpCandidate = new SignUpCandidate();
-            signUpCandidate.setVisible(true);
+            SignUpRecruiter signUpRecruiter = new SignUpRecruiter();
+            signUpRecruiter.setVisible(true);
         });
 
         buttonOK.addActionListener(e -> {
@@ -46,21 +42,21 @@ public class LoginUser extends JDialog {
             IOConnection io = IOConnection.getInstance();
 
             CandidateLoginRequest candidateLogin = new CandidateLoginRequest(userEmail, userPassword);
-            Request<CandidateLoginRequest> request = new Request<>(Operations.LOGIN_CANDIDATE,candidateLogin);
+            Request<CandidateLoginRequest> request = new Request<>(Operations.LOGIN_RECRUITER ,candidateLogin);
             io.send(request);
-            Response<CandidateLoginResponse> receivedMessage;
+            Response<RecruiterLoginResponse> receivedMessage;
             try {
-                receivedMessage = io.receive(CandidateLoginResponse.class);
+                receivedMessage = io.receive(RecruiterLoginResponse.class);
 
-                if (receivedMessage.status().equals(Statuses.INVALID_LOGIN)) {
+                if (receivedMessage.status().equals(Statuses.INVALID_LOGIN) || receivedMessage.status().equals(Statuses.INVALID_FIELD)){
                     JOptionPane.showMessageDialog(null, "Login inválido", "Erro", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 dispose();
-                CandidateStore store = CandidateStore.getInstance();
-                store.setToken(receivedMessage.data().token());
-                CandidateArea candidateArea = new CandidateArea();
-                candidateArea.setVisible(true);
+                RecruiterStore store = RecruiterStore.getInstance();
+                store.setToken(receivedMessage.data().getToken());
+                RecruiterArea recruiterArea = new RecruiterArea();
+                recruiterArea.setVisible(true);
             } catch (IOException err) {
                 throw new RuntimeException(err);
             }
@@ -69,7 +65,7 @@ public class LoginUser extends JDialog {
 
 
     public static void main(String[] args) {
-        LoginUser dialog = new LoginUser();
+        LoginRecruiter dialog = new LoginRecruiter();
         dialog.pack();
         dialog.setVisible(true);
         System.exit(0);

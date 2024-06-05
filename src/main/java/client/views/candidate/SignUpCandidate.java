@@ -1,5 +1,6 @@
-package client.views;
+package client.views.candidate;
 
+import client.views.SignOptions;
 import enums.Operations;
 import enums.Statuses;
 import helpers.singletons.IOConnection;

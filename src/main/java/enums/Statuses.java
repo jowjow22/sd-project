@@ -8,4 +8,6 @@ public enum Statuses {
     INVALID_EMAIL,
     INVALID_FIELD,
     NULL_RESPONSE,
+    USER_EXISTS,
+    INVALID_TOKEN,
 }

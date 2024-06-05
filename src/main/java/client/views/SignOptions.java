@@ -1,5 +1,7 @@
 package client.views;
 
+import client.views.candidate.SignUpCandidate;
+import client.views.recruiter.SignUpRecruiter;
 import helpers.singletons.IOConnection;
 
 import javax.swing.*;
@@ -24,7 +26,12 @@ public class SignOptions extends JDialog {
             signUpCandidate.setVisible(true);
         });
 
-        RECRUITER.addActionListener(e -> onCancel());
+        RECRUITER.addActionListener(e -> {
+            dispose();
+            SignUpRecruiter signUpRecruiter = new SignUpRecruiter();
+            signUpRecruiter.setVisible(true);
+        }
+        );
 
         exit.addActionListener(e -> onCancel());
 

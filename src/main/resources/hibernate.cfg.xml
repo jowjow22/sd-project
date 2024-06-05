@@ -3,11 +3,12 @@
     <session-factory>
         <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/databaseDistribution?createDatabaseIfNotExist=true</property>
         <property name="hibernate.connection.username">root</property>
-        <property name="hibernate.connection.password">111722Js@_</property>
+        <property name="hibernate.connection.password">111722</property>
         <property name="hibernate.show_sql">true</property>
         <property name="hibernate.format_sql">true</property>
 
         <property name="hibernate.hbm2ddl.auto">update</property>
         <mapping class="models.Candidate"/>
+        <mapping class="models.Recruiter"/>
     </session-factory>
 </hibernate-configuration>

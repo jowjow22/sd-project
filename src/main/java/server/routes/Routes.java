@@ -3,6 +3,7 @@ package server.routes;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import enums.Operations;
 import enums.Roles;
@@ -13,6 +14,7 @@ import helpers.singletons.IOServerConnection;
 import helpers.singletons.Json;
 import jakarta.persistence.NoResultException;
 import models.Candidate;
+import models.Recruiter;
 import org.hibernate.exception.ConstraintViolationException;
 import records.*;
 
@@ -37,6 +39,12 @@ public class Routes {
         switch (receivedRequest.operation()){
             case LOGIN_CANDIDATE -> {
                 CandidateLoginRequest candidateLogin =  receivedRequest.withDataClass(CandidateLoginRequest.class).data();
+
+                if (candidateLogin.email() == null || candidateLogin.email().isEmpty() || candidateLogin.password() == null || candidateLogin.password().isEmpty()){
+                    Response<CandidateLoginResponse> response = new Response<>(Operations.LOGIN_CANDIDATE, Statuses.INVALID_FIELD);
+                    responseMessage(response);
+                    return;
+                }
 
                 try{
                     Candidate candidate = db.getOneByQuery("SELECT c FROM Candidate c WHERE c.email = '"+candidateLogin.email()+"' AND c.password = '"+candidateLogin.password()+"'", Candidate.class);
@@ -67,7 +75,7 @@ public class Routes {
                     db.insert(candidate);
                     response = new Response<CandidateLoginResponse>(Operations.SIGNUP_CANDIDATE, Statuses.SUCCESS);
                 }catch (EmailAlreadyInUseException e){
-                    response = new Response<CandidateLoginResponse>(Operations.SIGNUP_CANDIDATE, Statuses.INVALID_EMAIL);
+                    response = new Response<CandidateLoginResponse>(Operations.SIGNUP_CANDIDATE, Statuses.USER_EXISTS);
                 }
                 responseMessage(response);
             }
@@ -75,6 +83,11 @@ public class Routes {
                 String token = receivedRequest.token();
                 try{
                     verifier.verify(token);
+                }catch(JWTVerificationException e){
+                    Response<Candidate> response = new Response<>(Operations.LOOKUP_ACCOUNT_CANDIDATE, Statuses.INVALID_TOKEN);
+                    responseMessage(response);
+                }
+                try{
                     Map<String, Claim> decoded = JWT.decode(token).getClaims();
                     int id = decoded.get("id").asInt();
                     Candidate candidate = db.getOneByQuery("SELECT c FROM Candidate c WHERE c.id = "+id, Candidate.class);
@@ -90,6 +103,11 @@ public class Routes {
                 String token = receivedRequest.token();
                 try{
                     verifier.verify(token);
+                }catch(JWTVerificationException e){
+                    Response<Candidate> response = new Response<>(Operations.LOGOUT_CANDIDATE, Statuses.INVALID_TOKEN);
+                    responseMessage(response);
+                }
+                try{
                     Response<Candidate> response = new Response<>(Operations.LOGOUT_CANDIDATE,Statuses.SUCCESS);
                     responseMessage(response);
                 }
@@ -102,6 +120,11 @@ public class Routes {
                 String token = receivedRequest.token();
                 try{
                     verifier.verify(token);
+                }catch(JWTVerificationException e){
+                    Response<Candidate> response = new Response<>(Operations.LOOKUP_ACCOUNT_CANDIDATE, Statuses.INVALID_TOKEN);
+                    responseMessage(response);
+                }
+                try{
                     Map<String, Claim> decoded = JWT.decode(token).getClaims();
                     int id = decoded.get("id").asInt();
                     Candidate candidate = db.selectByPK(Candidate.class, id);
@@ -117,7 +140,12 @@ public class Routes {
             case UPDATE_ACCOUNT_CANDIDATE -> {
                 CandidateSignUpAndUpdateRequest candidateUpdate = receivedRequest.withDataClass(CandidateSignUpAndUpdateRequest.class).data();
                 String token = receivedRequest.token();
+                try{
                     verifier.verify(token);
+                }catch(JWTVerificationException e){
+                    Response<Candidate> response = new Response<>(Operations.LOOKUP_ACCOUNT_CANDIDATE, Statuses.INVALID_TOKEN);
+                    responseMessage(response);
+                }
                     Map<String, Claim> decoded = JWT.decode(token).getClaims();
                     int id = decoded.get("id").asInt();
                     Candidate candidate = db.selectByPK(Candidate.class, id);
@@ -141,6 +169,146 @@ public class Routes {
 
                     responseMessage(response);
                 }
+            case SIGNUP_RECRUITER -> {
+                RecruiterSignUpAndUpdateRequest candidateSignUp = receivedRequest.withDataClass(RecruiterSignUpAndUpdateRequest.class).data();
+                Recruiter recruiter = new Recruiter();
+                recruiter.setEmail(candidateSignUp.email());
+                recruiter.setPassword(candidateSignUp.password());
+                recruiter.setName(candidateSignUp.name());
+                recruiter.setIndustry(candidateSignUp.industry());
+                recruiter.setDescription(candidateSignUp.description());
+
+                Response<?> response;
+
+                try {
+                    db.insert(recruiter);
+                    response = new Response<>(Operations.SIGNUP_RECRUITER, Statuses.SUCCESS);
+                }catch (EmailAlreadyInUseException e){
+                    response = new Response<>(Operations.SIGNUP_RECRUITER, Statuses.USER_EXISTS);
+                }
+                responseMessage(response);
+            }
+            case LOGOUT_RECRUITER -> {
+                String token = receivedRequest.token();
+                try{
+                    verifier.verify(token);
+                }catch(JWTVerificationException e){
+                    Response<Recruiter> response = new Response<>(Operations.LOGOUT_RECRUITER, Statuses.INVALID_TOKEN);
+                    responseMessage(response);
+                }
+                try{
+                    Response<Recruiter> response = new Response<>(Operations.LOGOUT_RECRUITER,Statuses.SUCCESS);
+                    responseMessage(response);
+                }
+                catch (Exception e){
+                    Response<Recruiter> response = new Response<>(Operations.LOGOUT_RECRUITER, Statuses.USER_NOT_FOUND);
+                    responseMessage(response);
+                }
+            }
+            case LOOKUP_ACCOUNT_RECRUITER -> {
+                String token = receivedRequest.token();
+                try{
+                    verifier.verify(token);
+                }catch(JWTVerificationException e){
+                    Response<Recruiter> response = new Response<>(Operations.LOOKUP_ACCOUNT_RECRUITER, Statuses.INVALID_TOKEN);
+                    responseMessage(response);
+                }
+                try{
+                    Map<String, Claim> decoded = JWT.decode(token).getClaims();
+                    int id = decoded.get("id").asInt();
+                    Recruiter recruiter = db.getOneByQuery("SELECT r FROM Recruiter r WHERE r.id = "+id, Recruiter.class);
+                    Response<Recruiter> response = new Response<>(Operations.LOOKUP_ACCOUNT_RECRUITER, Statuses.SUCCESS, recruiter);
+                    responseMessage(response);
+                }
+                catch (Exception e){
+                    Response<Recruiter> response = new Response<>(Operations.LOOKUP_ACCOUNT_RECRUITER, Statuses.USER_NOT_FOUND);
+                    responseMessage(response);
+                }
+            }
+            case DELETE_ACCOUNT_RECRUITER -> {
+                String token = receivedRequest.token();
+                try{
+                    verifier.verify(token);
+                }catch(JWTVerificationException e){
+                    Response<Recruiter> response = new Response<>(Operations.LOOKUP_ACCOUNT_RECRUITER, Statuses.INVALID_TOKEN);
+                    responseMessage(response);
+                }
+                try{
+                    Map<String, Claim> decoded = JWT.decode(token).getClaims();
+                    int id = decoded.get("id").asInt();
+                    Recruiter recruiter = db.selectByPK(Recruiter.class, id);
+                    db.delete(recruiter);
+                    Response<Recruiter> response = new Response<>(Operations.DELETE_ACCOUNT_RECRUITER, Statuses.SUCCESS);
+                    responseMessage(response);
+                }
+                catch (Exception e){
+                    System.out.println(e.getMessage());
+                    Response<Recruiter> response = new Response<>(Operations.DELETE_ACCOUNT_RECRUITER, Statuses.USER_NOT_FOUND);
+                    responseMessage(response);
+                }
+            }
+            case UPDATE_ACCOUNT_RECRUITER -> {
+                RecruiterSignUpAndUpdateRequest recruiterUpdate = receivedRequest.withDataClass(RecruiterSignUpAndUpdateRequest.class).data();
+                String token = receivedRequest.token();
+                try{
+                    verifier.verify(token);
+                }catch(JWTVerificationException e){
+                    Response<Recruiter> response = new Response<>(Operations.LOOKUP_ACCOUNT_RECRUITER, Statuses.INVALID_TOKEN);
+                    responseMessage(response);
+                }
+                Map<String, Claim> decoded = JWT.decode(token).getClaims();
+                int id = decoded.get("id").asInt();
+                Recruiter recruiter = db.selectByPK(Recruiter.class, id);
+                if(recruiterUpdate.email() != null){
+                    recruiter.setEmail(recruiterUpdate.email());
+                }
+                if(recruiterUpdate.password() != null){
+                    recruiter.setPassword(recruiterUpdate.password());
+                }
+                if(recruiterUpdate.name() != null){
+                    recruiter.setName(recruiterUpdate.name());
+                }
+                if(recruiterUpdate.industry() != null){
+                    recruiter.setIndustry(recruiterUpdate.industry());
+                }
+                if(recruiterUpdate.description() != null){
+                    recruiter.setDescription(recruiterUpdate.description());
+                }
+                recruiter.setId(id);
+                Response<Recruiter> response;
+                try{
+                    db.update(recruiter);
+                    response = new Response<>(Operations.UPDATE_ACCOUNT_RECRUITER, Statuses.SUCCESS);
+                }catch (EmailAlreadyInUseException e){
+                    response = new Response<>(Operations.UPDATE_ACCOUNT_RECRUITER, Statuses.INVALID_EMAIL);
+                }
+
+                responseMessage(response);
+            }
+            case LOGIN_RECRUITER -> {
+                RecruiterLoginRequest recruiterLogin =  receivedRequest.withDataClass(RecruiterLoginRequest.class).data();
+
+                if (recruiterLogin.email() == null || recruiterLogin.email().isEmpty() || recruiterLogin.password() == null || recruiterLogin.password().isEmpty()){
+                    Response<?> response = new Response<>(Operations.LOGIN_RECRUITER, Statuses.INVALID_FIELD);
+                    responseMessage(response);
+                    return;
+                }
+
+                try{
+                    Recruiter recruiter = db.getOneByQuery("SELECT r FROM Recruiter r WHERE r.email = '"+recruiterLogin.email()+"' AND r.password = '"+recruiterLogin.password()+"'", Recruiter.class);
+                    String token = JWT.create()
+                            .withClaim("id", recruiter.getId())
+                            .withClaim("role", Roles.RECRUITER.toString())
+                            .sign(algorithm);
+                    RecruiterLoginResponse recruiterLoginResponse = new RecruiterLoginResponse(token);
+                    Response<RecruiterLoginResponse> response = new Response<>(Operations.LOGIN_RECRUITER, Statuses.SUCCESS, recruiterLoginResponse);
+                    responseMessage(response);
+                }
+                catch (Exception e){
+                    Response<RecruiterLoginResponse> response = new Response<>(Operations.LOGIN_RECRUITER, Statuses.INVALID_LOGIN);
+                    responseMessage(response);
+                }
+            }
             }
 
     }
