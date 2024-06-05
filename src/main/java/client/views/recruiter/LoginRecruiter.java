@@ -4,10 +4,7 @@ import client.store.RecruiterStore;
 import enums.Operations;
 import enums.Statuses;
 import helpers.singletons.IOConnection;
-import records.CandidateLoginRequest;
-import records.CandidateLoginResponse;
-import records.Request;
-import records.Response;
+import records.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -47,9 +44,9 @@ public class LoginRecruiter extends JDialog {
             CandidateLoginRequest candidateLogin = new CandidateLoginRequest(userEmail, userPassword);
             Request<CandidateLoginRequest> request = new Request<>(Operations.LOGIN_RECRUITER ,candidateLogin);
             io.send(request);
-            Response<CandidateLoginResponse> receivedMessage;
+            Response<RecruiterLoginResponse> receivedMessage;
             try {
-                receivedMessage = io.receive(CandidateLoginResponse.class);
+                receivedMessage = io.receive(RecruiterLoginResponse.class);
 
                 if (receivedMessage.status().equals(Statuses.INVALID_LOGIN) || receivedMessage.status().equals(Statuses.INVALID_FIELD)){
                     JOptionPane.showMessageDialog(null, "Login inválido", "Erro", JOptionPane.ERROR_MESSAGE);
@@ -57,7 +54,7 @@ public class LoginRecruiter extends JDialog {
                 }
                 dispose();
                 RecruiterStore store = RecruiterStore.getInstance();
-                store.setToken(receivedMessage.data().token());
+                store.setToken(receivedMessage.data().getToken());
                 RecruiterArea recruiterArea = new RecruiterArea();
                 recruiterArea.setVisible(true);
             } catch (IOException err) {
