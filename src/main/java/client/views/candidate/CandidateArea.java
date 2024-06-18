@@ -23,6 +23,7 @@ public class CandidateArea extends JDialog {
     private JButton updateAccount;
     private JButton deleteAccountButton;
     private JButton logoutButton;
+    private JButton mySkills;
 
     public CandidateArea() {
         setContentPane(contentPane);
@@ -98,6 +99,11 @@ public class CandidateArea extends JDialog {
                     throw new RuntimeException(err);
                 }
             }
+        });
+        mySkills.addActionListener(e -> {
+            dispose();
+            CandidateSkillset candidateSkillset = new CandidateSkillset();
+            candidateSkillset.setVisible(true);
         });
         updateAccount.addActionListener(e -> {
             dispose();

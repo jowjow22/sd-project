@@ -9,7 +9,8 @@ import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.exception.ConstraintViolationException;
 
-import java.sql.SQLException;
+import java.util.List;
+
 import exceptions.EmailAlreadyInUseException;
 
 public class Database {
@@ -54,6 +55,11 @@ public class Database {
         finally {
             transaction.commit();
         }
+    }
+
+    public <T> List<T> getAll(Class<T> entityClass) {
+        TypedQuery<T> query = session.createQuery("from " + entityClass.getName(), entityClass);
+        return query.getResultList();
     }
 
     public void update(Object entity) throws  EmailAlreadyInUseException{
