@@ -21,6 +21,7 @@ import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class Routes {
     private final Json json = Json.getInstance();
@@ -229,17 +230,19 @@ React	ReactNative	TypeScript	Ruby
                 try {
                     verifier.verify(token);
                 } catch (JWTVerificationException e) {
-                    Response<Recruiter> response = new Response<>(Operations.LOOKUP_ACCOUNT_RECRUITER, Statuses.INVALID_TOKEN);
+                    Response<?> response = new Response<>(Operations.LOOKUP_ACCOUNT_RECRUITER, Statuses.INVALID_TOKEN);
                     responseMessage(response);
                 }
                 try {
                     Map<String, Claim> decoded = JWT.decode(token).getClaims();
                     int id = decoded.get("id").asInt();
                     Recruiter recruiter = db.getOneByQuery("SELECT r FROM Recruiter r WHERE r.id = " + id, Recruiter.class);
-                    Response<Recruiter> response = new Response<>(Operations.LOOKUP_ACCOUNT_RECRUITER, Statuses.SUCCESS, recruiter);
+                    RecruiterResponse recruiterResponse = new RecruiterResponse(recruiter);
+                    Response<?> response = new Response<>(Operations.LOOKUP_ACCOUNT_RECRUITER, Statuses.SUCCESS, recruiterResponse);
                     responseMessage(response);
                 } catch (Exception e) {
-                    Response<Recruiter> response = new Response<>(Operations.LOOKUP_ACCOUNT_RECRUITER, Statuses.USER_NOT_FOUND);
+                    System.out.println(e);
+                    Response<?> response = new Response<>(Operations.LOOKUP_ACCOUNT_RECRUITER, Statuses.USER_NOT_FOUND);
                     responseMessage(response);
                 }
             }
@@ -361,7 +364,7 @@ React	ReactNative	TypeScript	Ruby
                     Experience experience = new Experience();
                     experience.setCandidate(candidate);
                     experience.setSkill(skill);
-                    experience.setYears(Integer.parseInt(includeSkillRequest.experience()));
+                    experience.setExperience(Integer.parseInt(includeSkillRequest.experience()));
                     candidate.getExperiences().add(experience);
                     db.update(candidate);
                     Response<?> response = new Response<>(Operations.INCLUDE_SKILL, Statuses.SUCCESS);
@@ -395,7 +398,8 @@ React	ReactNative	TypeScript	Ruby
                         Response<?> response = new Response<>(Operations.LOOKUP_SKILL, Statuses.SKILL_NOT_FOUND);
                         responseMessage(response);
                     }
-                    ExperienceToResponse infos = new ExperienceToResponse(experienceToShow.getSkill().getSkill(), experienceToShow.getYears().toString());
+                    assert experienceToShow != null;
+                    ExperienceToResponse infos = new ExperienceToResponse(experienceToShow.getSkill().getSkill(), experienceToShow.getExperience().toString());
                     Response<ExperienceToResponse> response = new Response<>(Operations.LOOKUP_SKILL, Statuses.SUCCESS, infos);
                     responseMessage(response);
                 } catch (Exception e) {
@@ -418,9 +422,9 @@ React	ReactNative	TypeScript	Ruby
                     List<Experience> experiences = candidate.getExperiences();
                     List<ExperienceToResponse> skillset = new ArrayList<>();
                     for (Experience experience : experiences) {
-                        skillset.add(new ExperienceToResponse(experience.getSkill().getSkill(), experience.getYears().toString()));
+                        skillset.add(new ExperienceToResponse(experience.getSkill().getSkill(), experience.getExperience().toString()));
                     }
-                    SkillSetResponse skillSetResponse = new SkillSetResponse(skillset.size(), skillset);
+                    SkillSetResponse skillSetResponse = new SkillSetResponse(Integer.toString(skillset.size()), skillset);
                     Response<SkillSetResponse> response = new Response<>(Operations.LOOKUP_SKILLSET, Statuses.SUCCESS, skillSetResponse);
                     responseMessage(response);
                 } catch (Exception e) {
@@ -443,7 +447,7 @@ React	ReactNative	TypeScript	Ruby
                     List<Experience> experiences = candidate.getExperiences();
                     for (Experience experience : experiences) {
                         if (experience.getSkill().getSkill().equals(updateSkillRequest.skill())) {
-                            experience.setYears(updateSkillRequest.experience());
+                            experience.setExperience(Integer.parseInt(updateSkillRequest.experience()));
                             Skill skill = null;
                             try {
                                 skill = db.getOneByQuery("SELECT s FROM Skill s WHERE s.skill = '" + updateSkillRequest.newSkill() + "'", Skill.class);
@@ -451,6 +455,16 @@ React	ReactNative	TypeScript	Ruby
                                 Response<?> response = new Response<>(Operations.UPDATE_SKILL, Statuses.SKILL_NOT_FOUND);
                                 responseMessage(response);
                             }
+
+                                List<Experience> candidateExperience = candidate.getExperiences();
+                                for (Experience experience1 : candidateExperience) {
+                                    if (experience1.getSkill().getSkill().equals(updateSkillRequest.newSkill())) {
+                                        Response<?> response = new Response<>(Operations.UPDATE_SKILL, Statuses.SKILL_EXISTS);
+                                        responseMessage(response);
+                                        return;
+                                    }
+                                }
+
                             experience.setSkill(skill);
                             db.update(experience);
                             Response<?> response = new Response<>(Operations.UPDATE_SKILL, Statuses.SUCCESS);
@@ -475,18 +489,24 @@ React	ReactNative	TypeScript	Ruby
                 try {
                     DeleteSkillRequest deleteSkillRequest = receivedRequest.withDataClass(DeleteSkillRequest.class).data();
                     Candidate candidate = db.getOneByQuery("SELECT c FROM Candidate c WHERE c.id = " + JWT.decode(token).getClaims().get("id").asInt(), Candidate.class);
+                    Skill skill = null;
                     try {
-                        Skill skill = db.getOneByQuery("SELECT s FROM Skill s WHERE s.skill = '" + deleteSkillRequest.skill() + "'", Skill.class);
+                        skill = db.getOneByQuery("SELECT s FROM Skill s WHERE s.skill = '" + deleteSkillRequest.skill() + "'", Skill.class);
                     } catch (NoResultException e) {
                         Response<?> response = new Response<>(Operations.DELETE_SKILL, Statuses.SKILL_NOT_FOUND);
                         responseMessage(response);
+                        return;
                     }
                     List<Experience> experiences = candidate.getExperiences();
                     for (Experience experience : experiences) {
+                        System.out.println(deleteSkillRequest.skill());
                         if (experience.getSkill().getSkill().equals(deleteSkillRequest.skill())) {
+                            experiences.remove(experience);
                             db.delete(experience);
+
                             Response<?> response = new Response<>(Operations.DELETE_SKILL, Statuses.SUCCESS);
                             responseMessage(response);
+
                             return;
                         }
                     }
@@ -551,21 +571,200 @@ React	ReactNative	TypeScript	Ruby
                     responseMessage(response);
                 }
                 try {
-                    LookUpSkillRequest skillRequest = receivedRequest.withDataClass(LookUpSkillRequest.class).data();
-                    Candidate candidate = db.getOneByQuery("SELECT c FROM Candidate c WHERE c.id = " + JWT.decode(token).getClaims().get("id").asInt(), Candidate.class);
+                    Recruiter recruiter = db.getOneByQuery("SELECT r FROM Recruiter r WHERE r.id = " + JWT.decode(token).getClaims().get("id").asInt(), Recruiter.class);
 
-                    List<Experience> experiences = candidate.getExperiences();
-                    List<ExperienceToResponse> skillset = new ArrayList<>();
-                    for (Experience experience : experiences) {
-                        skillset.add(new ExperienceToResponse(experience.getSkill().getSkill(), experience.getYears().toString()));
+                    List<Job> jobs = recruiter.getJobs();
+                    List<JobToResponse> jobset = new ArrayList<>();
+                    for (Job job : jobs) {
+                        jobset.add(new JobToResponse(job.getId().toString(),job.getSkill().getSkill(), job.getExperience().toString()));
                     }
-                    SkillSetResponse skillSetResponse = new SkillSetResponse(skillset.size(), skillset);
-                    Response<SkillSetResponse> response = new Response<>(Operations.LOOKUP_SKILL, Statuses.SUCCESS, skillSetResponse);
+                    Response<JobSetResponse> response = new Response<JobSetResponse>(Operations.LOOKUP_JOBSET, Statuses.SUCCESS, new JobSetResponse(Integer.toString(jobset.size()), jobset));
                     responseMessage(response);
                 } catch (Exception e) {
-                    Response<?> response = new Response<>(Operations.LOOKUP_SKILL, Statuses.ERROR);
+                    Response<?> response = new Response<>(Operations.LOOKUP_JOBSET, Statuses.ERROR);
                     responseMessage(response);
                 }
+            }
+            case LOOKUP_JOB -> {
+                String token = receivedRequest.token();
+                try {
+                    verifier.verify(token);
+                } catch (JWTVerificationException e) {
+                    Response<?> response = new Response<>(Operations.LOOKUP_JOB, Statuses.INVALID_TOKEN);
+                    responseMessage(response);
+                }
+                try {
+                    LookUpJobRequest skillRequest = receivedRequest.withDataClass(LookUpJobRequest.class).data();
+                    Recruiter recruiter = db.getOneByQuery("SELECT r FROM Recruiter r WHERE r.id = " + JWT.decode(token).getClaims().get("id").asInt(), Recruiter.class);
+
+                    List<Job> jobs = recruiter.getJobs();
+                    Job jobToShow = null;
+                    for (Job job : jobs) {
+                        if (job.getId().toString().equals(skillRequest.id())) {
+                            jobToShow = job;
+                        }
+                    }
+                    if (jobToShow == null) {
+                        Response<?> response = new Response<>(Operations.LOOKUP_JOB, Statuses.SKILL_NOT_FOUND);
+                        responseMessage(response);
+                    }
+                    assert jobToShow != null;
+                    JobToResponse infos = new JobToResponse(jobToShow.getId().toString(),jobToShow.getSkill().getSkill(), jobToShow.getExperience().toString());
+                    Response<JobToResponse> response = new Response<>(Operations.LOOKUP_JOB, Statuses.SUCCESS, infos);
+                    responseMessage(response);
+                } catch (Exception e) {
+                    Response<?> response = new Response<>(Operations.LOOKUP_JOB, Statuses.ERROR);
+                    responseMessage(response);
+                }
+            }
+            case UPDATE_JOB -> {
+                String token = receivedRequest.token();
+                try {
+                    verifier.verify(token);
+                } catch (JWTVerificationException e) {
+                    Response<?> response = new Response<>(Operations.UPDATE_JOB, Statuses.INVALID_TOKEN);
+                    responseMessage(response);
+                }
+
+                try {
+                    UpdateJobRequest updateSkillRequest = receivedRequest.withDataClass(UpdateJobRequest.class).data();
+                    Recruiter recruiter = db.getOneByQuery("SELECT r FROM Recruiter r WHERE r.id = " + JWT.decode(token).getClaims().get("id").asInt(), Recruiter.class);
+                    List<Job> jobs = recruiter.getJobs();
+                    for (Job job : jobs) {
+                        if (job.getId().toString().equals(updateSkillRequest.id())) {
+                            job.setExperience(Integer.parseInt(updateSkillRequest.experience()));
+                            Skill skill = null;
+                            try {
+                                skill = db.getOneByQuery("SELECT s FROM Skill s WHERE s.skill = '" + updateSkillRequest.skill() + "'", Skill.class);
+                            } catch (NoResultException e) {
+                                Response<?> response = new Response<>(Operations.UPDATE_JOB, Statuses.SKILL_NOT_FOUND);
+                                responseMessage(response);
+                            }
+
+                            List<Job> recruiterJobs = recruiter.getJobs();
+                            for (Job job1 : recruiterJobs) {
+                                if (job1.getSkill().getSkill().equals(updateSkillRequest.skill())) {
+                                    Response<?> response = new Response<>(Operations.UPDATE_JOB, Statuses.SKILL_EXISTS);
+                                    responseMessage(response);
+                                    return;
+                                }
+                            }
+
+                            job.setSkill(skill);
+                            db.update(job);
+                            Response<?> response = new Response<>(Operations.UPDATE_JOB, Statuses.SUCCESS);
+                            responseMessage(response);
+                            return;
+                        }
+                        else {
+                            Response<?> response = new Response<>(Operations.UPDATE_JOB, Statuses.JOB_NOT_FOUND);
+                            responseMessage(response);
+                        }
+                    }
+                } catch (Exception e) {
+                    Response<?> response = new Response<>(Operations.UPDATE_JOB, Statuses.ERROR);
+                    responseMessage(response);
+                }
+            }
+            case DELETE_JOB -> {
+                String token = receivedRequest.token();
+                try {
+                    verifier.verify(token);
+                } catch (JWTVerificationException e) {
+                    Response<?> response = new Response<>(Operations.DELETE_JOB, Statuses.INVALID_TOKEN);
+                    responseMessage(response);
+                }
+
+                try {
+                    DeleteJobRequest deleteSkillRequest = receivedRequest.withDataClass(DeleteJobRequest.class).data();
+                    Recruiter recruiter = db.getOneByQuery("SELECT r FROM Recruiter r WHERE r.id = " + JWT.decode(token).getClaims().get("id").asInt(), Recruiter.class);
+                    Skill skill = null;
+                    try {
+                        skill = db.selectByPK(Skill.class, Integer.parseInt(deleteSkillRequest.id()));
+                    } catch (NoResultException e) {
+                        Response<?> response = new Response<>(Operations.DELETE_JOB, Statuses.SKILL_NOT_FOUND);
+                        responseMessage(response);
+                        return;
+                    }
+                    List<Job> jobs = recruiter.getJobs();
+                    for (Job job : jobs) {
+                        String id = job.getId().toString();
+                        if (id.equals(deleteSkillRequest.id())) {
+                            jobs.remove(job);
+                            db.delete(job);
+
+                            Response<?> response = new Response<>(Operations.DELETE_JOB, Statuses.SUCCESS);
+                            responseMessage(response);
+
+                            return;
+                        }
+                    }
+                    Response<?> response = new Response<>(Operations.DELETE_JOB, Statuses.JOB_NOT_FOUND);
+                    responseMessage(response);
+                } catch (Exception e) {
+                    System.out.println(e);
+                    Response<?> response = new Response<>(Operations.DELETE_JOB, Statuses.ERROR);
+                    responseMessage(response);
+                }
+            }
+            case SEARCH_JOB -> {
+                String token = receivedRequest.token();
+                try {
+                    verifier.verify(token);
+                } catch (JWTVerificationException e) {
+                    Response<?> response = new Response<>(Operations.SEARCH_JOB, Statuses.INVALID_TOKEN);
+                    responseMessage(response);
+                }
+
+                SearchJobRequest searchJobRequest = receivedRequest.withDataClass(SearchJobRequest.class).data();
+                List<String> skills = searchJobRequest.skill() == null ? new ArrayList<>() : searchJobRequest.skill();
+                String experience = searchJobRequest.experience();
+                String filter = searchJobRequest.filter();
+                List<Job> jobs = db.getAll(Job.class);
+
+                List<JobToResponse> jobsToReturn = new ArrayList<>();
+                if(filter == null || filter.isEmpty()){
+                    for (Job job : jobs) {
+                        if(skills.isEmpty()){
+                            if(job.getExperience() <= Integer.parseInt(experience)){
+                                JobToResponse jobToResponse = new JobToResponse(job.getId().toString(), job.getSkill().getSkill(), job.getExperience().toString());
+                                jobsToReturn.add(jobToResponse);
+                            }
+                        }
+                        else {
+                            for (String skill : skills) {
+                                if (job.getSkill().getSkill().equals(skill)) {
+                                    JobToResponse jobToResponse = new JobToResponse(job.getId().toString(), job.getSkill().getSkill(), job.getExperience().toString());
+                                    jobsToReturn.add(jobToResponse);
+                                }
+                            }
+                        }
+                    }
+                }
+                else{
+                    if (filter.equals("AND")){
+                        for (Job job : jobs) {
+                           if(job.getExperience() <= Integer.parseInt(experience) && skills.contains(job.getSkill().getSkill())){
+                               JobToResponse jobToResponse = new JobToResponse(job.getId().toString(), job.getSkill().getSkill(), job.getExperience().toString());
+                               jobsToReturn.add(jobToResponse);
+                           }
+                        }
+                    }
+                    else{
+                        for (Job job : jobs) {
+                            if(job.getExperience() <= Integer.parseInt(experience) || skills.contains(job.getSkill().getSkill())){
+                                JobToResponse jobToResponse = new JobToResponse(job.getId().toString(), job.getSkill().getSkill(), job.getExperience().toString());
+                                jobsToReturn.add(jobToResponse);
+                            }
+                        }
+                    }
+                }
+
+                JobSetResponse jobSetResponse = new JobSetResponse(Integer.toString(jobsToReturn.size()), jobsToReturn);
+                Response<JobSetResponse> response = new Response<>(Operations.SEARCH_JOB, Statuses.SUCCESS, jobSetResponse);
+
+                responseMessage(response);
+
             }
         }
     }

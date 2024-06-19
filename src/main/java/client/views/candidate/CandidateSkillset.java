@@ -107,7 +107,7 @@ public class CandidateSkillset extends JDialog {
     private void onOK() {
         try {
             String skillToInclude = (String) skill.getSelectedItem();
-            Request<IncludeSkillRequest> request = new Request<>(Operations.INCLUDE_SKILL, candidateStore.getToken(), new IncludeSkillRequest(skillToInclude, (String) yearsOfExperience.getValue()));
+            Request<IncludeSkillRequest> request = new Request<>(Operations.INCLUDE_SKILL, candidateStore.getToken(), new IncludeSkillRequest(skillToInclude, yearsOfExperience.getValue().toString()));
 
             io.send(request);
 
@@ -153,8 +153,10 @@ public class CandidateSkillset extends JDialog {
     }
 
     private void onCancel() {
-        // add your code here if necessary
         dispose();
+        CandidateArea candidateArea = new CandidateArea();
+        candidateArea.pack();
+        candidateArea.setVisible(true);
     }
 
     public static void main(String[] args) {

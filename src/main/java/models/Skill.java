@@ -20,7 +20,7 @@ public class Skill {
     @Column(name = "skill", length = 255, nullable = false, unique = true)
     private String skill;
 
-    @OneToMany(mappedBy = "skill", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "skill", cascade = CascadeType.ALL, orphanRemoval = true,  fetch = FetchType.LAZY)
     private List<Experience> experiences = new ArrayList<>() {
     };
 

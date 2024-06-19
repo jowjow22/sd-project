@@ -1,6 +1,8 @@
-package client.views.candidate;
+package client.views.recruiter;
 
 import client.store.CandidateStore;
+import client.store.RecruiterStore;
+import client.views.candidate.CandidateSkillset;
 import enums.Operations;
 import enums.Statuses;
 import helpers.singletons.IOConnection;
@@ -11,23 +13,25 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DeleteExperience extends JDialog {
+public class DeleteJob extends JDialog {
     private JPanel contentPane;
     private JButton buttonOK;
     private JButton buttonCancel;
     private JComboBox userSkills;
-    CandidateStore candidateStore = CandidateStore.getInstance();
+
+    List<JobToResponse> jobs = new ArrayList<>();
+    RecruiterStore recruiterStore = RecruiterStore.getInstance();
     IOConnection io = IOConnection.getInstance();
 
-    public DeleteExperience() {
+    public DeleteJob() {
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
 
-        List<ExperienceToResponse> experiences = getSkillSet();
+        jobs = getSkillSet();
 
-        for (ExperienceToResponse experience: experiences) {
-            userSkills.addItem(experience.skill());
+        for (JobToResponse job: jobs) {
+            userSkills.addItem(job.skill());
         }
 
         buttonOK.addActionListener(new ActionListener() {
@@ -59,7 +63,17 @@ public class DeleteExperience extends JDialog {
     }
 
     private void onOK() {
-        Request<DeleteSkillRequest> request = new Request<>(Operations.DELETE_SKILL, candidateStore.getToken(), new DeleteSkillRequest((String) userSkills.getSelectedItem()));
+        String id = null;
+        for (JobToResponse job: jobs) {
+            if (job.skill().equals(userSkills.getSelectedItem())) {
+                id = job.id();
+            }
+        }
+        if (id == null) {
+            JOptionPane.showMessageDialog(this, "Skill not found");
+            return;
+        }
+        Request<DeleteJobRequest> request = new Request<>(Operations.DELETE_JOB, recruiterStore.getToken(), new DeleteJobRequest(id));
         io.send(request);
 
         try {
@@ -67,9 +81,9 @@ public class DeleteExperience extends JDialog {
             if (response.status() == Statuses.SUCCESS) {
                 JOptionPane.showMessageDialog(this, "Skill deleted successfully");
                 dispose();
-                CandidateSkillset candidateSkillset = new CandidateSkillset();
-                candidateSkillset.pack();
-                candidateSkillset.setVisible(true);
+                RecruiterJobs dialog = new RecruiterJobs();
+                dialog.pack();
+                dialog.setVisible(true);
             } else {
                 JOptionPane.showMessageDialog(this, "Skill could not be deleted");
             }
@@ -80,21 +94,19 @@ public class DeleteExperience extends JDialog {
 
     private void onCancel() {
         dispose();
-        CandidateSkillset candidateSkillset = new CandidateSkillset();
-        candidateSkillset.pack();
-        candidateSkillset.setVisible(true);
+        RecruiterJobs dialog = new RecruiterJobs();
+        dialog.pack();
+        dialog.setVisible(true);
     }
 
-    private List<ExperienceToResponse> getSkillSet() {
-        Request<?> request = new Request<>(Operations.LOOKUP_SKILLSET, candidateStore.getToken());
+    private List<JobToResponse> getSkillSet() {
+        Request<?> request = new Request<>(Operations.LOOKUP_JOBSET, recruiterStore.getToken());
         io.send(request);
 
         try {
-            Response<SkillSetResponse> response = io.receive(SkillSetResponse.class);
+            Response<JobSetResponse> response = io.receive(JobSetResponse.class);
 
-            response.withDataClass(SkillSetResponse.class).data().skillset();
-
-            return response.withDataClass(SkillSetResponse.class).data().skillset();
+            return response.withDataClass(JobSetResponse.class).data().jobset();
         } catch (Exception e) {
             System.out.println(e);
             return new ArrayList<>();
@@ -102,7 +114,7 @@ public class DeleteExperience extends JDialog {
     }
 
     public static void main(String[] args) {
-        DeleteExperience dialog = new DeleteExperience();
+        DeleteJob dialog = new DeleteJob();
         dialog.pack();
         dialog.setVisible(true);
         System.exit(0);

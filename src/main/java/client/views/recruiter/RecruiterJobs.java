@@ -25,8 +25,8 @@ public class RecruiterJobs extends JDialog {
     private JTable skillsetTable;
     private JButton updateButton;
     private JButton deleteButton;
-    private SkillSetResponse skillSetResponse;
-    RecruiterStore candidateStore = RecruiterStore.getInstance();
+    private JobSetResponse jobsetResponse;
+    RecruiterStore recruiterStore = RecruiterStore.getInstance();
     IOConnection io = IOConnection.getInstance();
     DefaultTableModel model = new DefaultTableModel();
 
@@ -36,13 +36,13 @@ public class RecruiterJobs extends JDialog {
         getRootPane().setDefaultButton(buttonOK);
         setMinimumSize(new java.awt.Dimension(400, 400));
 
-        model.setColumnIdentifiers(new Object[]{"Skill", "Experience", "Update Button", "Delete Button"});
+        model.setColumnIdentifiers(new Object[]{"Skill", "Experience"});
 
 
-        List<ExperienceToResponse> skillset = getSkillSet();
+        List<JobToResponse> jobset = getJobset();
 
-        for(ExperienceToResponse experience: skillset){
-            model.addRow(new Object[]{experience.skill(), experience.experience()});
+        for(JobToResponse job: jobset){
+            model.addRow(new Object[]{job.skill(), job.experience()});
 
         }
 
@@ -76,18 +76,18 @@ public class RecruiterJobs extends JDialog {
         deleteButton.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent actionEvent) {
                 dispose();
-                DeleteExperience deleteExperience = new DeleteExperience();
-                deleteExperience.pack();
-                deleteExperience.setVisible(true);
+                DeleteJob deleteJob = new DeleteJob();
+                deleteJob.pack();
+                deleteJob.setVisible(true);
             }
         });
 
         updateButton.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent actionEvent) {
                 dispose();
-                UpdateExperience updateExperience = new UpdateExperience();
-                updateExperience.pack();
-                updateExperience.setVisible(true);
+                UpdateJob updateJob = new UpdateJob();
+                updateJob.pack();
+                updateJob.setVisible(true);
             }
         });
 
@@ -110,19 +110,19 @@ public class RecruiterJobs extends JDialog {
     private void onOK() {
         try {
             String skillToInclude = (String) skill.getSelectedItem();
-            Request<IncludeSkillRequest> request = new Request<>(Operations.INCLUDE_JOB, candidateStore.getToken(), new IncludeSkillRequest(skillToInclude, (String) yearsOfExperience.getValue()));
+            Request<IncludeSkillRequest> request = new Request<>(Operations.INCLUDE_JOB, recruiterStore.getToken(), new IncludeSkillRequest(skillToInclude, yearsOfExperience.getValue().toString()));
 
             io.send(request);
 
             Response<?> response = io.receive(Object.class);
             if (response.status() == Statuses.SUCCESS) {
-                JOptionPane.showMessageDialog(this, "Skill included successfully");
+                JOptionPane.showMessageDialog(this, "Job included successfully");
 
                 try{
-                    List<ExperienceToResponse> skillSet = getSkillSet();
+                    List<JobToResponse> jobset = getJobset();
                     model.setRowCount(0);
-                    for(ExperienceToResponse experience: skillSet){
-                        model.addRow(new Object[]{experience.skill(), experience.experience()});
+                    for(JobToResponse job: jobset){
+                        model.addRow(new Object[]{job.skill(), job.experience()});
                     }
 
                     skillsetTable.setModel(model);
@@ -140,15 +140,15 @@ public class RecruiterJobs extends JDialog {
         }
     }
 
-    private List<ExperienceToResponse> getSkillSet() {
-        Request<?> request = new Request<>(Operations.LOOKUP_SKILLSET, candidateStore.getToken());
+    private List<JobToResponse> getJobset() {
+        Request<?> request = new Request<>(Operations.LOOKUP_JOBSET, recruiterStore.getToken());
         io.send(request);
 
         try {
-            Response<SkillSetResponse> response = io.receive(SkillSetResponse.class);
-            skillSetResponse = response.withDataClass(SkillSetResponse.class).data();
+            Response<JobSetResponse> response = io.receive(JobSetResponse.class);
+            jobsetResponse = response.withDataClass(JobSetResponse.class).data();
 
-            return skillSetResponse.skillset();
+            return jobsetResponse.jobset();
         } catch (Exception e) {
             System.out.println(e);
             return new ArrayList<>();
@@ -156,8 +156,10 @@ public class RecruiterJobs extends JDialog {
     }
 
     private void onCancel() {
-        // add your code here if necessary
         dispose();
+        RecruiterArea recruiterArea = new RecruiterArea();
+        recruiterArea.pack();
+        recruiterArea.setVisible(true);
     }
 
     public static void main(String[] args) {

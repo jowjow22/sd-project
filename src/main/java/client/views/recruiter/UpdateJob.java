@@ -1,10 +1,11 @@
-package client.views.candidate;
+package client.views.recruiter;
 
 import client.store.CandidateStore;
+import client.store.RecruiterStore;
+import client.views.candidate.CandidateSkillset;
 import enums.Operations;
 import enums.Statuses;
 import helpers.singletons.IOConnection;
-import org.hibernate.sql.Update;
 import records.*;
 
 import javax.swing.*;
@@ -12,17 +13,19 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UpdateExperience extends JDialog {
+public class UpdateJob extends JDialog {
     private JPanel contentPane;
     private JButton buttonOK;
     private JButton buttonCancel;
     private JComboBox currentSkill;
     private JComboBox newSkill;
     private JSpinner spinner1;
-    CandidateStore candidateStore = CandidateStore.getInstance();
+
+    List<JobToResponse> jobs = new ArrayList<>();
+    RecruiterStore recruiterStore = RecruiterStore.getInstance();
     IOConnection io = IOConnection.getInstance();
 
-    public UpdateExperience() {
+    public UpdateJob() {
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);
@@ -39,10 +42,10 @@ public class UpdateExperience extends JDialog {
         newSkill.addItem("TypeScript");
         newSkill.addItem("Ruby");
 
-        List<ExperienceToResponse> experiences = getSkillSet();
+        jobs = getSkillSet();
 
-        for (ExperienceToResponse experience: experiences) {
-            currentSkill.addItem(experience.skill());
+        for (JobToResponse job: jobs) {
+            currentSkill.addItem(job.skill());
         }
 
 
@@ -61,11 +64,11 @@ public class UpdateExperience extends JDialog {
         currentSkill.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (currentSkill.getSelectedIndex() > experiences.size()) {
+                if (currentSkill.getSelectedIndex() > jobs.size()) {
                     return;
                 }
-                ExperienceToResponse experience = experiences.get(currentSkill.getSelectedIndex());
-                spinner1.setValue(experience.experience());
+                JobToResponse job = jobs.get(currentSkill.getSelectedIndex());
+                spinner1.setValue(Integer.parseInt(job.experience()));
             }
         });
 
@@ -86,8 +89,8 @@ public class UpdateExperience extends JDialog {
     }
 
     private void onOK() {
-        // addyour code here
-        Request<UpdateSkillRequest> request = new Request<>(Operations.UPDATE_SKILL, candidateStore.getToken(), new UpdateSkillRequest(currentSkill.getSelectedItem().toString(), spinner1.getValue().toString(), newSkill.getSelectedItem().toString()));
+        String jobId = jobs.get(currentSkill.getSelectedIndex()).id();
+        Request<UpdateJobRequest> request = new Request<>(Operations.UPDATE_JOB, recruiterStore.getToken(), new UpdateJobRequest(jobId, spinner1.getValue().toString(), (String) newSkill.getSelectedItem()));
         io.send(request);
 
         try {
@@ -106,21 +109,19 @@ public class UpdateExperience extends JDialog {
 
     private void onCancel() {
         dispose();
-        CandidateSkillset candidateSkillset = new CandidateSkillset();
-        candidateSkillset.pack();
-        candidateSkillset.setVisible(true);
+        RecruiterJobs recruiterJobs = new RecruiterJobs();
+        recruiterJobs.pack();
+        recruiterJobs.setVisible(true);
     }
 
-    private List<ExperienceToResponse> getSkillSet() {
-        Request<?> request = new Request<>(Operations.LOOKUP_SKILLSET, candidateStore.getToken());
+    private List<JobToResponse> getSkillSet() {
+        Request<?> request = new Request<>(Operations.LOOKUP_JOBSET, recruiterStore.getToken());
         io.send(request);
 
         try {
-            Response<SkillSetResponse> response = io.receive(SkillSetResponse.class);
+            Response<JobSetResponse> response = io.receive(JobSetResponse.class);
 
-            response.withDataClass(SkillSetResponse.class).data().skillset();
-
-            return response.withDataClass(SkillSetResponse.class).data().skillset();
+            return response.withDataClass(JobSetResponse.class).data().jobset();
         } catch (Exception e) {
             System.out.println(e);
             return new ArrayList<>();
@@ -128,7 +129,7 @@ public class UpdateExperience extends JDialog {
     }
 
     public static void main(String[] args) {
-        UpdateExperience dialog = new UpdateExperience();
+        UpdateJob dialog = new UpdateJob();
         dialog.pack();
         dialog.setVisible(true);
         System.exit(0);
