@@ -403,8 +403,7 @@ React	ReactNative	TypeScript	Ruby
                     Response<ExperienceToResponse> response = new Response<>(Operations.LOOKUP_SKILL, Statuses.SUCCESS, infos);
                     responseMessage(response);
                 } catch (Exception e) {
-                    Response<?> response = new Response<>(Operations.LOOKUP_SKILL, Statuses.ERROR);
-                    responseMessage(response);
+                    System.out.println(e);
                 }
             }
             case LOOKUP_SKILLSET -> {
@@ -522,7 +521,7 @@ React	ReactNative	TypeScript	Ruby
                 try {
                     verifier.verify(token);
                 } catch (JWTVerificationException e) {
-                    Response<?> response = new Response<>(Operations.INCLUDE_SKILL, Statuses.INVALID_TOKEN);
+                    Response<?> response = new Response<>(Operations.INCLUDE_JOB, Statuses.INVALID_TOKEN);
                     responseMessage(response);
                 }
                 try {
@@ -555,10 +554,10 @@ React	ReactNative	TypeScript	Ruby
                     job.setExperience(Integer.parseInt(includeSkillRequest.experience()));
                     recruiter.getJobs().add(job);
                     db.update(recruiter);
-                    Response<?> response = new Response<>(Operations.INCLUDE_SKILL, Statuses.SUCCESS);
+                    Response<?> response = new Response<>(Operations.INCLUDE_JOB, Statuses.SUCCESS);
                     responseMessage(response);
                 } catch (Exception e) {
-                    Response<?> response = new Response<>(Operations.INCLUDE_SKILL, Statuses.ERROR);
+                    Response<?> response = new Response<>(Operations.INCLUDE_JOB, Statuses.ERROR);
                     responseMessage(response);
                 }
             }
@@ -613,8 +612,7 @@ React	ReactNative	TypeScript	Ruby
                     Response<JobToResponse> response = new Response<>(Operations.LOOKUP_JOB, Statuses.SUCCESS, infos);
                     responseMessage(response);
                 } catch (Exception e) {
-                    Response<?> response = new Response<>(Operations.LOOKUP_JOB, Statuses.ERROR);
-                    responseMessage(response);
+                    System.out.println(e);
                 }
             }
             case UPDATE_JOB -> {
@@ -639,6 +637,7 @@ React	ReactNative	TypeScript	Ruby
                             } catch (NoResultException e) {
                                 Response<?> response = new Response<>(Operations.UPDATE_JOB, Statuses.SKILL_NOT_FOUND);
                                 responseMessage(response);
+                                return;
                             }
 
                             List<Job> recruiterJobs = recruiter.getJobs();
@@ -656,11 +655,10 @@ React	ReactNative	TypeScript	Ruby
                             responseMessage(response);
                             return;
                         }
-                        else {
-                            Response<?> response = new Response<>(Operations.UPDATE_JOB, Statuses.JOB_NOT_FOUND);
-                            responseMessage(response);
-                        }
                     }
+                    Response<?> response = new Response<>(Operations.UPDATE_JOB, Statuses.JOB_NOT_FOUND);
+                    responseMessage(response);
+                    return;
                 } catch (Exception e) {
                     Response<?> response = new Response<>(Operations.UPDATE_JOB, Statuses.ERROR);
                     responseMessage(response);
