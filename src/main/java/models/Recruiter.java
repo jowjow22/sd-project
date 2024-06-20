@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Setter
 @Getter
 @Entity
@@ -24,6 +27,9 @@ public class Recruiter {
     private String industry;
     @Column(name = "description", length = 255, nullable = false)
     private String description;
+
+    @OneToMany(mappedBy = "recruiter", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Job> jobs = new ArrayList<>();
 
     public Recruiter() {
     }

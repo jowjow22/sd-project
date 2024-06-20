@@ -23,11 +23,13 @@ public class CandidateArea extends JDialog {
     private JButton updateAccount;
     private JButton deleteAccountButton;
     private JButton logoutButton;
+    private JButton mySkills;
+    private JButton searchJobs;
 
     public CandidateArea() {
         setContentPane(contentPane);
         setModal(true);
-        setMinimumSize(new Dimension(400, 400));
+        setMinimumSize(new Dimension(600, 400));
         IOConnection io = IOConnection.getInstance();
 
         CandidateStore candidateStore = CandidateStore.getInstance();
@@ -98,6 +100,16 @@ public class CandidateArea extends JDialog {
                     throw new RuntimeException(err);
                 }
             }
+        });
+        searchJobs.addActionListener(e -> {
+            dispose();
+            SearchJob searchJob = new SearchJob();
+            searchJob.setVisible(true);
+        });
+        mySkills.addActionListener(e -> {
+            dispose();
+            CandidateSkillset candidateSkillset = new CandidateSkillset();
+            candidateSkillset.setVisible(true);
         });
         updateAccount.addActionListener(e -> {
             dispose();

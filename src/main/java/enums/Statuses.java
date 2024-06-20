@@ -10,4 +10,9 @@ public enum Statuses {
     NULL_RESPONSE,
     USER_EXISTS,
     INVALID_TOKEN,
+    SKILL_EXISTS,
+    SKILL_NOT_EXISTS,
+    JOB_NOT_FOUND,
+    SKILL_NOT_FOUND,
+
 }

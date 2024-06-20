@@ -6,6 +6,7 @@ import enums.Operations;
 import enums.Statuses;
 import helpers.singletons.IOConnection;
 import models.Recruiter;
+import records.RecruiterResponse;
 import records.Request;
 import records.Response;
 
@@ -23,6 +24,7 @@ public class RecruiterArea extends JDialog {
     private JButton updateAccount;
     private JButton deleteAccountButton;
     private JButton logoutButton;
+    private JButton jobsView;
 
     public RecruiterArea() {
         setContentPane(contentPane);
@@ -40,8 +42,12 @@ public class RecruiterArea extends JDialog {
 
 
             io.send(request);
-            Response<Recruiter> response = io.receive(Recruiter.class);
-            Recruiter recruiter = response.data();
+            Response<RecruiterResponse> response = io.receive(RecruiterResponse.class);
+            Recruiter recruiter = new Recruiter();
+            recruiter.setName(response.data().name());
+            recruiter.setEmail(response.data().email());
+            recruiter.setIndustry(response.data().industry());
+            recruiter.setDescription(response.data().description());
 
             RecruiterStore store = RecruiterStore.getInstance();
             store.setRecruiter(recruiter);
@@ -103,6 +109,12 @@ public class RecruiterArea extends JDialog {
             dispose();
             UpdateRecruiterData updateRecruiterData = new UpdateRecruiterData();
             updateRecruiterData.setVisible(true);
+        });
+        jobsView.addActionListener(e -> {
+            dispose();
+            RecruiterJobs recruiterJobs = new RecruiterJobs();
+            recruiterJobs.pack();
+            recruiterJobs.setVisible(true);
         });
         deleteAccountButton.addActionListener(e -> {
             Request request = new Request<>(Operations.DELETE_ACCOUNT_RECRUITER, recruiterStore.getToken());
