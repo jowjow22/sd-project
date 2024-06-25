@@ -516,7 +516,7 @@ React	ReactNative	TypeScript	Ruby
                 }
             }
             case INCLUDE_JOB -> {
-                IncludeSkillRequest includeSkillRequest = receivedRequest.withDataClass(IncludeSkillRequest.class).data();
+                IncludeJobRequest includeSkillRequest = receivedRequest.withDataClass(IncludeJobRequest.class).data();
                 String token = receivedRequest.token();
                 try {
                     verifier.verify(token);
@@ -552,11 +552,14 @@ React	ReactNative	TypeScript	Ruby
                     job.setRecruiter(recruiter);
                     job.setSkill(skill);
                     job.setExperience(Integer.parseInt(includeSkillRequest.experience()));
+                    job.setSearchable(includeSkillRequest.searchable());
+                    job.setAvailable(includeSkillRequest.available());
                     recruiter.getJobs().add(job);
                     db.update(recruiter);
                     Response<?> response = new Response<>(Operations.INCLUDE_JOB, Statuses.SUCCESS);
                     responseMessage(response);
                 } catch (Exception e) {
+                    System.out.println(e);
                     Response<?> response = new Response<>(Operations.INCLUDE_JOB, Statuses.ERROR);
                     responseMessage(response);
                 }
@@ -763,6 +766,50 @@ React	ReactNative	TypeScript	Ruby
 
                 responseMessage(response);
 
+            }
+            case SET_JOB_AVAILABLE -> {
+                String token = receivedRequest.token();
+                try {
+                    verifier.verify(token);
+                } catch (JWTVerificationException e) {
+                    Response<?> response = new Response<>(Operations.SET_JOB_AVAILABLE, Statuses.INVALID_TOKEN);
+                    responseMessage(response);
+                }
+
+                SetJobAvailableRequest setJobAvailableRequest = receivedRequest.withDataClass(SetJobAvailableRequest.class).data();
+
+                try {
+                    Job job = db.selectByPK(Job.class, Integer.parseInt(setJobAvailableRequest.id()));
+                    job.setAvailable(setJobAvailableRequest.available());
+                    db.update(job);
+                    Response<?> response = new Response<>(Operations.SET_JOB_AVAILABLE, Statuses.SUCCESS);
+                    responseMessage(response);
+                } catch (Exception e) {
+                    Response<?> response = new Response<>(Operations.SET_JOB_AVAILABLE, Statuses.JOB_NOT_FOUND);
+                    responseMessage(response);
+                }
+            }
+            case SET_JOB_SEARCHABLE -> {
+                String token = receivedRequest.token();
+                try {
+                    verifier.verify(token);
+                } catch (JWTVerificationException e) {
+                    Response<?> response = new Response<>(Operations.SET_JOB_SEARCHABLE, Statuses.INVALID_TOKEN);
+                    responseMessage(response);
+                }
+
+                SetJobSearchableRequest setJobAvailableRequest = receivedRequest.withDataClass(SetJobSearchableRequest.class).data();
+
+                try {
+                    Job job = db.selectByPK(Job.class, Integer.parseInt(setJobAvailableRequest.id()));
+                    job.setSearchable(setJobAvailableRequest.searchable());
+                    db.update(job);
+                    Response<?> response = new Response<>(Operations.SET_JOB_SEARCHABLE, Statuses.SUCCESS);
+                    responseMessage(response);
+                } catch (Exception e) {
+                    Response<?> response = new Response<>(Operations.SET_JOB_SEARCHABLE, Statuses.JOB_NOT_FOUND);
+                    responseMessage(response);
+                }
             }
         }
     }

@@ -1,9 +1,8 @@
 package client.views.recruiter;
 
-import client.store.CandidateStore;
 import client.store.RecruiterStore;
-import client.views.candidate.DeleteExperience;
-import client.views.candidate.UpdateExperience;
+import client.views.SearchableAndAvailable;
+import enums.Available;
 import enums.Operations;
 import enums.Statuses;
 import helpers.singletons.IOConnection;
@@ -25,6 +24,9 @@ public class RecruiterJobs extends JDialog {
     private JTable skillsetTable;
     private JButton updateButton;
     private JButton deleteButton;
+    private JCheckBox availableCheckbox;
+    private JCheckBox searchableCheckbox;
+    private JButton changeAvailableOrSearchableButton;
     private JobSetResponse jobsetResponse;
     RecruiterStore recruiterStore = RecruiterStore.getInstance();
     IOConnection io = IOConnection.getInstance();
@@ -82,6 +84,15 @@ public class RecruiterJobs extends JDialog {
             }
         });
 
+        changeAvailableOrSearchableButton.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent actionEvent) {
+                dispose();
+                SearchableAndAvailable searchableAndAvailable = new SearchableAndAvailable();
+                searchableAndAvailable.pack();
+                searchableAndAvailable.setVisible(true);
+            }
+        });
+
         updateButton.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent actionEvent) {
                 dispose();
@@ -110,7 +121,9 @@ public class RecruiterJobs extends JDialog {
     private void onOK() {
         try {
             String skillToInclude = (String) skill.getSelectedItem();
-            Request<IncludeSkillRequest> request = new Request<>(Operations.INCLUDE_JOB, recruiterStore.getToken(), new IncludeSkillRequest(skillToInclude, yearsOfExperience.getValue().toString()));
+            Available isAvailable = availableCheckbox.isSelected() ? Available.YES : Available.NO;
+            Available isSearchable = searchableCheckbox.isSelected() ? Available.YES : Available.NO;
+            Request<IncludeJobRequest> request = new Request<>(Operations.INCLUDE_JOB, recruiterStore.getToken(), new IncludeJobRequest(skillToInclude, yearsOfExperience.getValue().toString(), isAvailable, isSearchable));
 
             io.send(request);
 

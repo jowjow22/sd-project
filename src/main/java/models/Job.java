@@ -1,5 +1,6 @@
 package models;
 
+import enums.Available;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,4 +25,10 @@ public class Job {
 
     @Column(name = "experience", nullable = false)
     private Integer experience;
+
+    @Column(name = "available", length = 255, nullable = false)
+    private Available available;
+
+    @Column(name = "searchable", length = 255, nullable = false)
+    private Available searchable;
 }

@@ -14,5 +14,5 @@ public enum Statuses {
     SKILL_NOT_EXISTS,
     JOB_NOT_FOUND,
     SKILL_NOT_FOUND,
-
+    CANDIDATE_NOT_FOUND,
 }
