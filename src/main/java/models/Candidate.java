@@ -17,7 +17,7 @@ public class Candidate {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     @Column(name = "email", length = 255, nullable = false, unique = true)
     private String email;
@@ -28,6 +28,9 @@ public class Candidate {
 
     @OneToMany(mappedBy = "candidate", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Experience> experiences = new ArrayList<>();
+
+    @OneToMany(mappedBy = "candidate", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<ChoosedCandidates> recruiters = new ArrayList<>();
 
     public Candidate() {
     }

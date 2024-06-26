@@ -6,6 +6,7 @@ import enums.Operations;
 import enums.Statuses;
 import helpers.singletons.IOConnection;
 import models.Candidate;
+import records.GetCompanyResponse;
 import records.Request;
 import records.Response;
 
@@ -39,17 +40,21 @@ public class CandidateArea extends JDialog {
 
         try {
             Request request = new Request<>(Operations.LOOKUP_ACCOUNT_CANDIDATE, candidateStore.getToken());
+            Request requestCompany = new Request<>(Operations.GET_COMPANY, candidateStore.getToken());
 
 
             io.send(request);
+            io.send(requestCompany);
             Response<Candidate> response = io.receive(Candidate.class);
+            Response<GetCompanyResponse> responseCompany = io.receive(GetCompanyResponse.class);
             Candidate candidate = response.data();
 
             CandidateStore store = CandidateStore.getInstance();
             store.setCandidate(candidate);
 
-
-
+            ChoosedByCompanies choosedByCompanies = new ChoosedByCompanies(responseCompany.data().company());
+            choosedByCompanies.pack();
+            choosedByCompanies.setVisible(true);
         } catch (IOException err) {
             throw new RuntimeException(err);
         }

@@ -811,6 +811,122 @@ React	ReactNative	TypeScript	Ruby
                     responseMessage(response);
                 }
             }
+            case SEARCH_CANDIDATE -> {
+                String token = receivedRequest.token();
+                try {
+                    verifier.verify(token);
+                } catch (JWTVerificationException e) {
+                    Response<?> response = new Response<>(Operations.SEARCH_CANDIDATE, Statuses.INVALID_TOKEN);
+                    responseMessage(response);
+                }
+
+                SearchCandidateRequest searchCandidateRequest = receivedRequest.withDataClass(SearchCandidateRequest.class).data();
+                List<String> skills = searchCandidateRequest.skill() == null ? new ArrayList<>() : searchCandidateRequest.skill();
+                String experience = searchCandidateRequest.experience();
+                String filter = searchCandidateRequest.filter();
+                List<Candidate> candidates = db.getAll(Candidate.class);
+
+                List<CandidateToSearchResponse> candidatesToSearchResponse = new ArrayList<>();
+                if(filter == null || filter.isEmpty()){
+                    for (Candidate candidate : candidates) {
+                        if(!candidate.getExperiences().isEmpty() && experience!= null && !experience.isEmpty()){
+                            for (Experience candidateExperience : candidate.getExperiences()) {
+                                if(candidateExperience.getExperience() <= Integer.parseInt(experience)){
+                                    CandidateToSearchResponse candidateToSearchResponse = new CandidateToSearchResponse(candidateExperience.getSkill().getSkill(), candidateExperience.getExperience().toString(), candidateExperience.getId().toString(), candidate.getId().toString());
+                                    candidatesToSearchResponse.add(candidateToSearchResponse);
+                                }
+                            }
+                        }
+                        else {
+                            for (Experience candidateExperience : candidate.getExperiences()) {
+                                if(skills.contains(candidateExperience.getSkill().getSkill())){
+                                    CandidateToSearchResponse candidateToSearchResponse = new CandidateToSearchResponse(candidateExperience.getSkill().getSkill(), candidateExperience.getExperience().toString(), candidateExperience.getId().toString(), candidate.getId().toString());
+                                    candidatesToSearchResponse.add(candidateToSearchResponse);
+                                }
+                            }
+                        }
+                    }
+                }
+                else{
+                    if (filter.equals("AND")){
+                        for (Candidate candidate : candidates) {
+                            if(!candidate.getExperiences().isEmpty()){
+                                for (Experience candidateExperience : candidate.getExperiences()) {
+                                    if(candidateExperience.getExperience() <= Integer.parseInt(experience) && skills.contains(candidateExperience.getSkill().getSkill())){
+                                        CandidateToSearchResponse candidateToSearchResponse = new CandidateToSearchResponse(candidateExperience.getSkill().getSkill(), candidateExperience.getExperience().toString(), candidateExperience.getId().toString(), candidate.getId().toString());
+                                        candidatesToSearchResponse.add(candidateToSearchResponse);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else{
+                        for (Candidate candidate : candidates) {
+                            if(!candidate.getExperiences().isEmpty()){
+                                for (Experience candidateExperience : candidate.getExperiences()) {
+                                    if(candidateExperience.getExperience() <= Integer.parseInt(experience) || skills.contains(candidateExperience.getSkill().getSkill())){
+                                        CandidateToSearchResponse candidateToSearchResponse = new CandidateToSearchResponse(candidateExperience.getSkill().getSkill(), candidateExperience.getExperience().toString(), candidateExperience.getId().toString(), candidate.getId().toString());
+                                        candidatesToSearchResponse.add(candidateToSearchResponse);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                SearchCandidatesResponse jobSetResponse = new SearchCandidatesResponse(Integer.toString(candidatesToSearchResponse.size()), candidatesToSearchResponse);
+                Response<SearchCandidatesResponse> response = new Response<>(Operations.SEARCH_CANDIDATE, Statuses.SUCCESS, jobSetResponse);
+
+                responseMessage(response);
+
+            }
+            case CHOOSE_CANDIDATE -> {
+                String token = receivedRequest.token();
+                try {
+                    verifier.verify(token);
+                } catch (JWTVerificationException e) {
+                    Response<?> response = new Response<>(Operations.SEARCH_CANDIDATE, Statuses.INVALID_TOKEN);
+                    responseMessage(response);
+                }
+
+                ChooseCandidateRequest chooseCandidateRequest = receivedRequest.withDataClass(ChooseCandidateRequest.class).data();
+
+                Recruiter recruiter = db.getOneByQuery("SELECT r FROM Recruiter r WHERE r.id = " + JWT.decode(token).getClaims().get("id").asInt(), Recruiter.class);
+                Candidate candidate = db.selectByPK(Candidate.class, Integer.parseInt(chooseCandidateRequest.id_user()));
+
+                try {
+                    ChoosedCandidates choosedCandidates = new ChoosedCandidates();
+                    choosedCandidates.setCandidate(candidate);
+                    choosedCandidates.setRecruiter(recruiter);
+                    db.insert(choosedCandidates);
+                    Response<?> response = new Response<>(Operations.CHOOSE_CANDIDATE, Statuses.SUCCESS);
+                    responseMessage(response);
+
+                }   catch (Exception e) {
+                    Response<?> response = new Response<>(Operations.CHOOSE_CANDIDATE, Statuses.ERROR);
+                    responseMessage(response);
+                }
+            }
+            case GET_COMPANY -> {
+                String token = receivedRequest.token();
+                try {
+                    verifier.verify(token);
+                } catch (JWTVerificationException e) {
+                    Response<?> response = new Response<>(Operations.SEARCH_CANDIDATE, Statuses.INVALID_TOKEN);
+                    responseMessage(response);
+                }
+                Integer id = JWT.decode(token).getClaims().get("id").asInt();
+                List<ChoosedCandidates> choosedCandidates = db.getAll(ChoosedCandidates.class);
+                List<CompanyToResponse> company = new ArrayList<>();
+
+                for (ChoosedCandidates choosedCandidate : choosedCandidates) {
+                    if(Objects.equals(choosedCandidate.getRecruiter().getId(), id)){
+                        company.add(new CompanyToResponse(choosedCandidate.getRecruiter()));
+                    }
+                }
+                Response<GetCompanyResponse> response = new Response<>(Operations.GET_COMPANY, Statuses.SUCCESS, new GetCompanyResponse(Integer.toString(company.size()), company));
+                responseMessage(response);
+            }
         }
     }
 }

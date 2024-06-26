@@ -25,6 +25,7 @@ public class RecruiterArea extends JDialog {
     private JButton deleteAccountButton;
     private JButton logoutButton;
     private JButton jobsView;
+    private JButton candidates;
 
     public RecruiterArea() {
         setContentPane(contentPane);
@@ -83,6 +84,13 @@ public class RecruiterArea extends JDialog {
                 dispose();
             }
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
+        candidates.addActionListener(e -> {
+            dispose();
+            SearchCandidate searchCandidate = new SearchCandidate();
+            searchCandidate.pack();
+            searchCandidate.setVisible(true);
+        });
         logoutButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Request<?> request = new Request<>(Operations.LOGOUT_RECRUITER, recruiterStore.getToken());
@@ -104,6 +112,12 @@ public class RecruiterArea extends JDialog {
                     throw new RuntimeException(err);
                 }
             }
+        });
+        candidates.addActionListener(e -> {
+            dispose();
+            SearchCandidate searchCandidate = new SearchCandidate();
+            searchCandidate.pack();
+            searchCandidate.setVisible(true);
         });
         updateAccount.addActionListener(e -> {
             dispose();

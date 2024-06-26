@@ -15,7 +15,7 @@ public class Recruiter {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     @Column(name = "email", length = 255, nullable = false, unique = true)
     private String email;
@@ -30,6 +30,10 @@ public class Recruiter {
 
     @OneToMany(mappedBy = "recruiter", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Job> jobs = new ArrayList<>();
+
+    @OneToMany(mappedBy = "recruiter", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ChoosedCandidates> candidates = new ArrayList<>();
+
 
     public Recruiter() {
     }

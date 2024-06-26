@@ -3,7 +3,7 @@
     <session-factory>
         <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/databaseDistribution?createDatabaseIfNotExist=true</property>
         <property name="hibernate.connection.username">root</property>
-        <property name="hibernate.connection.password">111722Js@_</property>
+        <property name="hibernate.connection.password">111722</property>
         <property name="hibernate.show_sql">true</property>
         <property name="hibernate.format_sql">true</property>
 
@@ -13,5 +13,6 @@
         <mapping class="models.Experience" />
         <mapping class="models.Skill" />
         <mapping class="models.Job" />
+        <mapping class="models.ChoosedCandidates" />
     </session-factory>
 </hibernate-configuration>

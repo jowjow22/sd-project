@@ -30,4 +30,6 @@ public enum Operations {
     SET_JOB_SEARCHABLE,
     CHOOSE_CANDIDATE,
     GET_COMPANY,
+
+    SEARCH_CANDIDATE,
 }
