@@ -2,8 +2,10 @@ package server;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
+import helpers.singletons.IpAddressesStore;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -19,10 +21,13 @@ import server.routes.Routes;
 
 public class Server extends Thread{
     private final Socket client;
-    private final static List<IpAdressess> ipAdressess = new ArrayList<>();
-    private final static IpAdresses ipAdresses = new IpAdresses(ipAdressess);
+    private final static IpAddressesStore ipAdressessStore = IpAddressesStore.getInstance();
+    private final static IpAdresses ipAdresses = new IpAdresses(ipAdressessStore.getIpAdressess());
+
     
     public static void main(String[] args)   {
+
+        ipAdressessStore.setPanelModel(ipAdresses.getButtonsPanel());
         try {
             Server.startConnection();
         } catch (IOException e) {
@@ -53,8 +58,8 @@ public class Server extends Thread{
     }
     @Override
     public void run(){
-        ipAdressess.add(new IpAdressess(client.getInetAddress().getHostAddress(), String.valueOf(client.getPort())));
-        ipAdresses.updateTable(ipAdressess);
+        ipAdressessStore.addIp(client.getInetAddress().getHostAddress(), String.valueOf(client.getPort()));
+        ipAdresses.updateTable(ipAdressessStore.getIpAdressess());
         System.out.println("New Client connected: " + client.getInetAddress().getHostAddress() + " at " + client.getPort() + " port.");
 
         try(
@@ -63,16 +68,20 @@ public class Server extends Thread{
                 BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
         ){
-            IOServerConnection io = new IOServerConnection(out, in);
+            IOServerConnection io = new IOServerConnection(out, in, new IpAdressess(client.getInetAddress().getHostAddress(), String.valueOf(client.getPort())));
             Request<?> request;
             while((request = io.receive(Object.class, in.readLine())) != null){
                 Routes routes = new Routes(io);
                 routes.receiveRequest(request);
             }
             io.close();
+            ipAdressessStore.removeIp(client.getInetAddress().getHostAddress());
+            ipAdresses.updateTable(ipAdressessStore.getIpAdressess());
         }
         catch (IOException e){
             System.out.println(e.getMessage());
+            ipAdressessStore.removeIp(client.getInetAddress().getHostAddress());
+            ipAdresses.updateTable(ipAdressessStore.getIpAdressess());
         }
     }
 }

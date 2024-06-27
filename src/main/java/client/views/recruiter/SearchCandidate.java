@@ -15,9 +15,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
 
 public class SearchCandidate extends JDialog {
@@ -31,7 +29,6 @@ public class SearchCandidate extends JDialog {
     private JPanel candidatesPanel;
 
     List<String> skills = new ArrayList<>();
-    private  final Database db = Database.getInstance();
 
     String experienceValue = null;
 
@@ -132,16 +129,19 @@ public class SearchCandidate extends JDialog {
             candidatesPanel.revalidate();
             candidatesPanel.repaint();
             candidatesPanel.setLayout(new GridLayout(response.data().profile().size(), 1));
-            List<Candidate> candidates = new ArrayList<>();
-            for(CandidateToSearchResponse candidate : response.data().profile()){
-                candidates.add(db.selectByPK(Candidate.class, Integer.parseInt(candidate.id_user())));
+            HashMap<String, String> candidates = new HashMap<>();
+            for (CandidateToSearchResponse candidate : response.data().profile()) {
+                candidates.put(candidate.id(), candidate.name());
             }
-            HashSet<Candidate> uniqueCandidates = new HashSet<>(candidates);
-            for(Candidate candidate : uniqueCandidates){
-                String candidateInfo = candidate.getId() + " - " + candidate.getName() + " - " + candidate.getName();
-                JButton button = new JButton(candidateInfo);
+            List<String> UniqueCandidates = new ArrayList<>();
+            for (Map.Entry<String, String> entry : candidates.entrySet()) {
+                UniqueCandidates.add(entry.getKey() + " - " + entry.getValue());
+            }
+            for(String candidate : UniqueCandidates){
+                JButton button = new JButton(candidate);
                 button.addActionListener(e -> {
-                    Request<ChooseCandidateRequest> chooseCandidateRequest = new Request<>(Operations.CHOOSE_CANDIDATE, recruiterStore.getToken(), new ChooseCandidateRequest(candidate.getId().toString()));
+                    String[] candidateData = candidate.split(" - ");
+                    Request<ChooseCandidateRequest> chooseCandidateRequest = new Request<>(Operations.CHOOSE_CANDIDATE, recruiterStore.getToken(), new ChooseCandidateRequest(candidateData[0]));
                     io.send(chooseCandidateRequest);
                     try{
                         Response<Object> chooseCandidateResponse = io.receive(Object.class);

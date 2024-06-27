@@ -19,16 +19,14 @@ import org.hibernate.exception.ConstraintViolationException;
 import records.*;
 
 import java.sql.SQLIntegrityConstraintViolationException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class Routes {
     private final Json json = Json.getInstance();
     private  final Database db = Database.getInstance();
     private final Algorithm algorithm = Algorithm.HMAC256("DISTRIBUIDOS");
     private final IOServerConnection io;
+
     private final JWTVerifier verifier = JWT.require(algorithm)
             .build();
     public Routes(IOServerConnection io){
@@ -833,7 +831,7 @@ React	ReactNative	TypeScript	Ruby
                         if(!candidate.getExperiences().isEmpty() && experience!= null && !experience.isEmpty()){
                             for (Experience candidateExperience : candidate.getExperiences()) {
                                 if(candidateExperience.getExperience() <= Integer.parseInt(experience)){
-                                    CandidateToSearchResponse candidateToSearchResponse = new CandidateToSearchResponse(candidateExperience.getSkill().getSkill(), candidateExperience.getExperience().toString(), candidateExperience.getId().toString(), candidate.getId().toString());
+                                    CandidateToSearchResponse candidateToSearchResponse = new CandidateToSearchResponse(candidateExperience.getSkill().getSkill(), candidateExperience.getExperience().toString(), candidateExperience.getId().toString(), candidate.getId().toString(), candidate.getName());
                                     candidatesToSearchResponse.add(candidateToSearchResponse);
                                 }
                             }
@@ -841,7 +839,7 @@ React	ReactNative	TypeScript	Ruby
                         else {
                             for (Experience candidateExperience : candidate.getExperiences()) {
                                 if(skills.contains(candidateExperience.getSkill().getSkill())){
-                                    CandidateToSearchResponse candidateToSearchResponse = new CandidateToSearchResponse(candidateExperience.getSkill().getSkill(), candidateExperience.getExperience().toString(), candidateExperience.getId().toString(), candidate.getId().toString());
+                                    CandidateToSearchResponse candidateToSearchResponse = new CandidateToSearchResponse(candidateExperience.getSkill().getSkill(), candidateExperience.getExperience().toString(), candidateExperience.getId().toString(), candidate.getId().toString(), candidate.getName());
                                     candidatesToSearchResponse.add(candidateToSearchResponse);
                                 }
                             }
@@ -854,7 +852,7 @@ React	ReactNative	TypeScript	Ruby
                             if(!candidate.getExperiences().isEmpty()){
                                 for (Experience candidateExperience : candidate.getExperiences()) {
                                     if(candidateExperience.getExperience() <= Integer.parseInt(experience) && skills.contains(candidateExperience.getSkill().getSkill())){
-                                        CandidateToSearchResponse candidateToSearchResponse = new CandidateToSearchResponse(candidateExperience.getSkill().getSkill(), candidateExperience.getExperience().toString(), candidateExperience.getId().toString(), candidate.getId().toString());
+                                        CandidateToSearchResponse candidateToSearchResponse = new CandidateToSearchResponse(candidateExperience.getSkill().getSkill(), candidateExperience.getExperience().toString(), candidateExperience.getId().toString(), candidate.getId().toString(),candidate.getName());
                                         candidatesToSearchResponse.add(candidateToSearchResponse);
                                     }
                                 }
@@ -866,7 +864,7 @@ React	ReactNative	TypeScript	Ruby
                             if(!candidate.getExperiences().isEmpty()){
                                 for (Experience candidateExperience : candidate.getExperiences()) {
                                     if(candidateExperience.getExperience() <= Integer.parseInt(experience) || skills.contains(candidateExperience.getSkill().getSkill())){
-                                        CandidateToSearchResponse candidateToSearchResponse = new CandidateToSearchResponse(candidateExperience.getSkill().getSkill(), candidateExperience.getExperience().toString(), candidateExperience.getId().toString(), candidate.getId().toString());
+                                        CandidateToSearchResponse candidateToSearchResponse = new CandidateToSearchResponse(candidateExperience.getSkill().getSkill(), candidateExperience.getExperience().toString(), candidateExperience.getId().toString(), candidate.getId().toString(), candidate.getName());
                                         candidatesToSearchResponse.add(candidateToSearchResponse);
                                     }
                                 }
@@ -921,7 +919,7 @@ React	ReactNative	TypeScript	Ruby
                 List<CompanyToResponse> company = new ArrayList<>();
 
                 for (ChoosedCandidates choosedCandidate : choosedCandidates) {
-                    if(Objects.equals(choosedCandidate.getRecruiter().getId(), id)){
+                    if(Objects.equals(choosedCandidate.getCandidate().getId(), id)){
                         company.add(new CompanyToResponse(choosedCandidate.getRecruiter()));
                     }
                 }
