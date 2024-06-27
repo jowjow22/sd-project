@@ -5,6 +5,7 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
+import enums.Available;
 import enums.Operations;
 import enums.Roles;
 import enums.Statuses;
@@ -490,7 +491,7 @@ React	ReactNative	TypeScript	Ruby
                     Candidate candidate = db.getOneByQuery("SELECT c FROM Candidate c WHERE c.id = " + JWT.decode(token).getClaims().get("id").asInt(), Candidate.class);
                     Skill skill = null;
                     try {
-                        skill = db.getOneByQuery("SELECT s FROM Skill s WHERE s.skill = '" + deleteSkillRequest.skill() + "'", Skill.class);
+                        skill = db.getOneByQuery("SELECT s FROM Experience s WHERE s.skill = '" + deleteSkillRequest.skill() + "'", Skill.class);
                     } catch (NoResultException e) {
                         Response<?> response = new Response<>(Operations.DELETE_SKILL, Statuses.SKILL_NOT_FOUND);
                         responseMessage(response);
@@ -578,7 +579,7 @@ React	ReactNative	TypeScript	Ruby
                     List<Job> jobs = recruiter.getJobs();
                     List<JobToResponse> jobset = new ArrayList<>();
                     for (Job job : jobs) {
-                        jobset.add(new JobToResponse(job.getId().toString(),job.getSkill().getSkill(), job.getExperience().toString()));
+                        jobset.add(new JobToResponse(job.getId().toString(),job.getSkill().getSkill(), job.getExperience().toString(), job.getAvailable().toString(), job.getSearchable().toString()));
                     }
                     Response<JobSetResponse> response = new Response<JobSetResponse>(Operations.LOOKUP_JOBSET, Statuses.SUCCESS, new JobSetResponse(Integer.toString(jobset.size()), jobset));
                     responseMessage(response);
@@ -611,7 +612,7 @@ React	ReactNative	TypeScript	Ruby
                         responseMessage(response);
                     }
                     assert jobToShow != null;
-                    JobToResponse infos = new JobToResponse(jobToShow.getId().toString(),jobToShow.getSkill().getSkill(), jobToShow.getExperience().toString());
+                    JobToResponse infos = new JobToResponse(jobToShow.getId().toString(),jobToShow.getSkill().getSkill(), jobToShow.getExperience().toString(), jobToShow.getAvailable().toString(), jobToShow.getSearchable().toString());
                     Response<JobToResponse> response = new Response<>(Operations.LOOKUP_JOB, Statuses.SUCCESS, infos);
                     responseMessage(response);
                 } catch (Exception e) {
@@ -727,15 +728,15 @@ React	ReactNative	TypeScript	Ruby
                 if(filter == null || filter.isEmpty()){
                     for (Job job : jobs) {
                         if(skills.isEmpty()){
-                            if(job.getExperience() <= Integer.parseInt(experience)){
-                                JobToResponse jobToResponse = new JobToResponse(job.getId().toString(), job.getSkill().getSkill(), job.getExperience().toString());
+                            if(job.getExperience() <= Integer.parseInt(experience) && job.getSearchable().equals(Available.YES)){
+                                JobToResponse jobToResponse = new JobToResponse(job.getId().toString(), job.getSkill().getSkill(), job.getExperience().toString(), job.getAvailable().toString(), job.getSearchable().toString());
                                 jobsToReturn.add(jobToResponse);
                             }
                         }
                         else {
                             for (String skill : skills) {
-                                if (job.getSkill().getSkill().equals(skill)) {
-                                    JobToResponse jobToResponse = new JobToResponse(job.getId().toString(), job.getSkill().getSkill(), job.getExperience().toString());
+                                if (job.getSkill().getSkill().equals(skill) && job.getSearchable().equals(Available.YES)) {
+                                    JobToResponse jobToResponse = new JobToResponse(job.getId().toString(), job.getSkill().getSkill(), job.getExperience().toString(), job.getAvailable().toString(), job.getSearchable().toString());
                                     jobsToReturn.add(jobToResponse);
                                 }
                             }
@@ -745,16 +746,16 @@ React	ReactNative	TypeScript	Ruby
                 else{
                     if (filter.equals("AND")){
                         for (Job job : jobs) {
-                           if(job.getExperience() <= Integer.parseInt(experience) && skills.contains(job.getSkill().getSkill())){
-                               JobToResponse jobToResponse = new JobToResponse(job.getId().toString(), job.getSkill().getSkill(), job.getExperience().toString());
+                           if(job.getExperience() <= Integer.parseInt(experience) && skills.contains(job.getSkill().getSkill()) && job.getSearchable().equals(Available.YES)){
+                               JobToResponse jobToResponse = new JobToResponse(job.getId().toString(), job.getSkill().getSkill(), job.getExperience().toString(), job.getAvailable().toString(), job.getSearchable().toString());
                                jobsToReturn.add(jobToResponse);
                            }
                         }
                     }
                     else{
                         for (Job job : jobs) {
-                            if(job.getExperience() <= Integer.parseInt(experience) || skills.contains(job.getSkill().getSkill())){
-                                JobToResponse jobToResponse = new JobToResponse(job.getId().toString(), job.getSkill().getSkill(), job.getExperience().toString());
+                            if((job.getExperience() <= Integer.parseInt(experience) || skills.contains(job.getSkill().getSkill())) && job.getSearchable().equals(Available.YES)){
+                                JobToResponse jobToResponse = new JobToResponse(job.getId().toString(), job.getSkill().getSkill(), job.getExperience().toString(), job.getAvailable().toString(), job.getSearchable().toString());
                                 jobsToReturn.add(jobToResponse);
                             }
                         }

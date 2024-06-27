@@ -1,6 +1,8 @@
 package server;
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -8,6 +10,7 @@ import org.hibernate.Transaction;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import records.IpAdressess;
 import records.Request;
 import records.Response;
 
@@ -16,6 +19,8 @@ import server.routes.Routes;
 
 public class Server extends Thread{
     private final Socket client;
+    private final static List<IpAdressess> ipAdressess = new ArrayList<>();
+    private final static IpAdresses ipAdresses = new IpAdresses(ipAdressess);
     
     public static void main(String[] args)   {
         try {
@@ -48,6 +53,8 @@ public class Server extends Thread{
     }
     @Override
     public void run(){
+        ipAdressess.add(new IpAdressess(client.getInetAddress().getHostAddress(), String.valueOf(client.getPort())));
+        ipAdresses.updateTable(ipAdressess);
         System.out.println("New Client connected: " + client.getInetAddress().getHostAddress() + " at " + client.getPort() + " port.");
 
         try(
