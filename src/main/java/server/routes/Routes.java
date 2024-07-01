@@ -606,7 +606,7 @@ React	ReactNative	TypeScript	Ruby
                         }
                     }
                     if (jobToShow == null) {
-                        Response<?> response = new Response<>(Operations.LOOKUP_JOB, Statuses.SKILL_NOT_FOUND);
+                        Response<?> response = new Response<>(Operations.LOOKUP_JOB, Statuses.JOB_NOT_FOUND);
                         responseMessage(response);
                     }
                     assert jobToShow != null;
@@ -682,7 +682,7 @@ React	ReactNative	TypeScript	Ruby
                     try {
                         skill = db.selectByPK(Skill.class, Integer.parseInt(deleteSkillRequest.id()));
                     } catch (NoResultException e) {
-                        Response<?> response = new Response<>(Operations.DELETE_JOB, Statuses.SKILL_NOT_FOUND);
+                        Response<?> response = new Response<>(Operations.DELETE_JOB, Statuses.JOB_NOT_FOUND);
                         responseMessage(response);
                         return;
                     }

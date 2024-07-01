@@ -131,7 +131,7 @@ public class SearchCandidate extends JDialog {
             candidatesPanel.setLayout(new GridLayout(response.data().profile().size(), 1));
             HashMap<String, String> candidates = new HashMap<>();
             for (CandidateToSearchResponse candidate : response.data().profile()) {
-                candidates.put(candidate.id(), candidate.name());
+                candidates.put(candidate.id_user(), candidate.name());
             }
             List<String> UniqueCandidates = new ArrayList<>();
             for (Map.Entry<String, String> entry : candidates.entrySet()) {

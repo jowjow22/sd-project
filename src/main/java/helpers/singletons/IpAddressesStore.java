@@ -1,5 +1,6 @@
 package helpers.singletons;
 
+import lombok.Setter;
 import records.IpAdressess;
 import server.IpLogs;
 
@@ -10,6 +11,8 @@ public class IpAddressesStore {
     private final HashSet<IpAdressess> ipAdressess;
 
     private JPanel buttonsPanel;
+    @Setter
+    private JList logsList;
     private static IpAddressesStore instance = null;
     public IpAddressesStore() {
         ipAdressess = new HashSet<>();
